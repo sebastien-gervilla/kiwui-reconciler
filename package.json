@@ -2,9 +2,12 @@
   "name": "sage-reconciler",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "tsc",
+    "reset:sage": "rmdir /s /q node_modules\\sage && npm i"
   },
   "repository": {
     "type": "git",
@@ -20,5 +23,13 @@
   "devDependencies": {
     "@types/node": "^20.4.5",
     "typescript": "^5.1.6"
-  }
+  },
+  "dependencies": {
+    "sage": "file:../sage",
+    "tslib": "^2.6.1"
+  },
+  "files": [
+    "dist",
+    "README"
+  ]
 }
