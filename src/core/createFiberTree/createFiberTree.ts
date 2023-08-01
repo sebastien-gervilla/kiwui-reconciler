@@ -1,22 +1,22 @@
-import { Dispatcher, SageElement, SageHTML, SageNode } from "sage";
+import { Dispatcher, SageHTML, SageNode } from "sage";
 import { Fiber } from "../../classes";
-import { createFiber } from "..";
-import { isFunction } from "../../utils/is-type";
+import { isFunction, isNumber, isString } from "../../utils/is-type";
+import { FiberComponent, FiberHostElement, FiberHostText } from "../../classes/Fiber";
 
 const createFiberTree = (element: SageNode) => {
     // ==> Fiber verifications
     if (!element || typeof element === 'boolean')
         return;
 
-    if (typeof element !== 'object') return; // TODO: Expression, number, strings ?
-
-    const { type, props } = element;
-
     // ==> Fiber creation
+
+    // Expressions
+    if (isString(element) || isNumber(element))
+        return new FiberHostText(element.toString());
 
     // Components
     if (isFunction(element.type)) { // TODO: TypeGuards
-        const fiber = createFiber('Component', element.type.toString(), element.props);
+        const fiber = new FiberComponent(element.type.name, element.props || {})
         try {
             Dispatcher.current = {
                 useState: (initialGetter) => {
@@ -47,9 +47,12 @@ const createFiberTree = (element: SageNode) => {
         return fiber;
     }
 
+    if (typeof element !== 'object') return;
+    const { type, props } = element;
+
     // DOMElements
     const tag = type as keyof SageHTML;
-    const fiber = createFiber('DOMElement', tag, props);
+    const fiber = new FiberHostElement(tag, props || {});
     if (!props) return fiber;
 
     const children = ('children' in props) ? 
