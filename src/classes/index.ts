@@ -1,1 +1,6 @@
-export { Fiber } from './Fiber';
+export {
+    Fiber,
+    FiberComponent,
+    FiberHostElement,
+    FiberHostText
+} from './Fiber';

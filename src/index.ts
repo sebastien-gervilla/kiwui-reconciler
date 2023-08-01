@@ -3,5 +3,8 @@ export {
 } from './core';
 
 export {
-    Fiber
+    Fiber,
+    FiberComponent,
+    FiberHostElement,
+    FiberHostText
 } from './classes';
