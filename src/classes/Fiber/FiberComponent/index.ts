@@ -1,0 +1,1 @@
+export { default as FiberComponent } from './FiberComponent';
