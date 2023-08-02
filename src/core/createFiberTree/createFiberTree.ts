@@ -2,8 +2,9 @@ import { Dispatcher, SageHTML, SageNode } from "sage";
 import { Fiber } from "../../classes";
 import { isFunction, isNumber, isString } from "../../utils/is-type";
 import { FiberComponent, FiberHostElement, FiberHostText } from "../../classes/Fiber";
+import updateFiber from "../updateFiber/updateFiber";
 
-const createFiberTree = (element: SageNode, updateContainer: () => void) => {
+const createFiberTree = (element: SageNode, updateContainer: (rootFiber: Fiber) => void) => {
     // ==> Fiber verifications
     if (!element || typeof element === 'boolean')
         return;
@@ -14,9 +15,14 @@ const createFiberTree = (element: SageNode, updateContainer: () => void) => {
     if (isString(element) || isNumber(element))
         return new FiberHostText(element.toString());
 
+    const { type, props } = element;
+
     // Components
-    if (isFunction(element.type)) {
-        const fiber = new FiberComponent(element.type.name, element.props || {})
+    if (isFunction(type)) {
+        const component = type;
+        const componentProps = props || {};
+
+        const fiber = new FiberComponent(component, componentProps);
         try {
             let hooksIndex = 0;
             const previousHooks = [...fiber.hooks];
@@ -25,7 +31,7 @@ const createFiberTree = (element: SageNode, updateContainer: () => void) => {
             Dispatcher.current = {
                 useState(initialGetter) {
                     let state: any;
-                    let fronzenHooksIndex = hooksIndex;
+                    let frozenHooksIndex = hooksIndex;
 
                     if (!(hooksIndex in previousHooks)) {
                         // Initializing the state
@@ -42,16 +48,16 @@ const createFiberTree = (element: SageNode, updateContainer: () => void) => {
                         state,
                         (newState) => {
                             // TODO: What happens when the user "setStates" ?
-                            fiber.hooks[fronzenHooksIndex] = isFunction(newState) ?
+                            fiber.hooks[frozenHooksIndex] = isFunction(newState) ?
                                 newState(state) : newState;
 
-                            updateContainer();
+                            updateFiber(fiber, updateContainer);
                         }
                     ]
                 },
             }
             
-            const functionElement = element.type(element.props || {});
+            const functionElement = component(componentProps);
             const childFiber = createFiberTree(functionElement, updateContainer);
             console.log("childFiber : ", childFiber);
             
@@ -63,7 +69,6 @@ const createFiberTree = (element: SageNode, updateContainer: () => void) => {
     }
 
     if (typeof element !== 'object') return;
-    const { type, props } = element;
 
     // DOMElements
     const tag = type as keyof SageHTML;
