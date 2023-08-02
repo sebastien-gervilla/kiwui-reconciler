@@ -71,8 +71,7 @@ const createFiberTree = (element: SageNode, updateContainer: (rootFiber: Fiber) 
     if (typeof element !== 'object') return;
 
     // DOMElements
-    const tag = type as keyof SageHTML;
-    const fiber = new FiberHostElement(tag, props || {});
+    const fiber = new FiberHostElement(type, props || {});
     if (!props) return fiber;
 
     const children = ('children' in props) ? 
