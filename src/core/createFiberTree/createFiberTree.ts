@@ -74,7 +74,7 @@ const createFiberTree = (element: SageNode, updateContainer: (rootFiber: Fiber) 
     const fiber = new FiberHostElement(type, props || {});
     if (!props) return fiber;
 
-    const children = ('children' in props) ? 
+    let children = ('children' in props) ? 
         props.children : null;
 
     if (!children || !Array.isArray(children)) return;
@@ -82,13 +82,16 @@ const createFiberTree = (element: SageNode, updateContainer: (rootFiber: Fiber) 
     // ==> Fiber children creation
     let firstChild: Fiber | null = null;
     let previousFiber: Fiber | null = null;
+    
+    // Array handling (Temporary)
+    children = children.flat(Infinity);
     for (const child of children) {
         const childFiber = createFiberTree(child, updateContainer);
         if (!childFiber) continue;
 
         childFiber.parent = fiber;
 
-        if (previousFiber) // TODO: Careful, doing that means "fiber" do not have nextSibling set yet
+        if (previousFiber)
             previousFiber.sibling = childFiber;
 
         if (!firstChild)
