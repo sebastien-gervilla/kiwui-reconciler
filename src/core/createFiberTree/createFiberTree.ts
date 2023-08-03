@@ -5,6 +5,8 @@ import { FiberComponent, FiberHostElement, FiberHostText } from "../../classes/F
 import updateFiber from "../updateFiber/updateFiber";
 
 const createFiberTree = (element: SageNode, updateContainer: (rootFiber: Fiber) => void) => {
+    if (Array.isArray(element)) return;
+    
     // ==> Fiber verifications
     if (!element || typeof element === 'boolean')
         return;
@@ -84,6 +86,9 @@ const createFiberTree = (element: SageNode, updateContainer: (rootFiber: Fiber) 
     let previousFiber: Fiber | null = null;
     
     // Array handling (Temporary)
+    // @ts-ignore
+    // Ignored this error because we want to indefinitely flatten the array,
+    // while letting the user handle the problem. (shouldn't be sage's job).
     children = children.flat(Infinity);
     for (const child of children) {
         const childFiber = createFiberTree(child, updateContainer);
