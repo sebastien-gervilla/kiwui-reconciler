@@ -61,13 +61,16 @@ const createFiberTree = (element: SageNode, updateContainer: (rootFiber: Fiber) 
             
             const functionElement = component(componentProps);
             const childFiber = createFiberTree(functionElement, updateContainer);
-            console.log("childFiber : ", childFiber);
-            
-            fiber.child = childFiber || null;
+
+            if (!childFiber) return fiber;
+
+            fiber.child = childFiber;
+            childFiber.parent = fiber;
         } catch (error) {
             console.log(error); // TODO: Error handling ?
+        } finally {
+            return fiber;
         }
-        return fiber;
     }
 
     if (typeof element !== 'object') return;
