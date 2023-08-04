@@ -1,6 +1,6 @@
-import { Dispatcher, SageHTML, SageNode } from "sage";
+import { Dispatcher, SageNode } from "sage";
 import { Fiber } from "../../classes";
-import { isFunction, isNumber, isString } from "../../utils/is-type";
+import { isComponent, isFunction, isHTMLElement, isNumber, isString } from "../../utils/is-type";
 import { FiberComponent, FiberHostElement, FiberHostText } from "../../classes/Fiber";
 import updateFiber from "../updateFiber/updateFiber";
 
@@ -17,10 +17,9 @@ const createFiberTree = (element: SageNode, updateContainer: (rootFiber: Fiber) 
     if (isString(element) || isNumber(element))
         return new FiberHostText(element.toString());
 
-    const { type, props } = element;
-
     // Components
-    if (isFunction(type)) {
+    if (isComponent(element)) {
+        const { type, props } = element;
         const component = type;
         const componentProps = props || {};
 
@@ -73,16 +72,21 @@ const createFiberTree = (element: SageNode, updateContainer: (rootFiber: Fiber) 
         }
     }
 
-    if (typeof element !== 'object') return;
+    if (!isHTMLElement(element)) throw Error(`
+        This isn't a valid HTML Element: \n
+        1. It might not be supported by Sage yet.
+        2. If you meant to render a Component, you need to capitalize the first character.
+    `);
 
     // DOMElements
+    const { type, props } = element;
     const fiber = new FiberHostElement(type, props || {});
+
     if (!props) return fiber;
+    let children = props.children;
 
-    let children = ('children' in props) ? 
-        props.children : null;
-
-    if (!children || !Array.isArray(children)) return;
+    // Sage transforms single nodes in arrays (so SageNode is technically impossible)
+    if (!children || !Array.isArray(children)) return fiber;
 
     // ==> Fiber children creation
     let firstChild: Fiber | null = null;
