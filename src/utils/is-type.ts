@@ -8,4 +8,4 @@ export const isNumber = (value: any): value is number => typeof value === 'numbe
 export const isComponent = (value: SageElement): value is SageElement<FunctionComponent> => typeof value.type === 'function';
 
 export const isHTMLElement = (element: SageElement): element is SageElement<keyof SageHTML> => 
-    typeof element.type === 'object' && isValidTag(element.type);
+    typeof element === 'object' && isValidTag(element.type);

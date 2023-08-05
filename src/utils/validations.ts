@@ -3,7 +3,7 @@ import { SageHTML } from "sage";
 // !!!!!!!!!!!!!!!!!!!!!
 // TODO: This should be relocated to dom-bindings
 
-export const isValidTag = (tag: string): tag is keyof SageHTML => tag in HTMLTags;
+export const isValidTag = (tag: keyof SageHTML): tag is keyof SageHTML => HTMLTags.includes(tag);
 
 //
 // Contants
