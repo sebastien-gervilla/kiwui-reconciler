@@ -7,7 +7,11 @@ export default class FiberComponent extends Fiber {
     public props: Object;
 
     public component: FunctionComponent;
-    public hooks: any[] = [];
+    public hooks: Hooks = {
+        states: [],
+        layouts: [],
+        effects: []
+    };
 
     constructor(component: FunctionComponent, props: Object) {
         super('Component')
@@ -15,4 +19,10 @@ export default class FiberComponent extends Fiber {
         this.component = component;
         this.props = props;
     }
+}
+
+type Hooks = {
+    states: any[]
+    layouts: any[]
+    effects: any[]
 }
