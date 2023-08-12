@@ -1,6 +1,4 @@
-export {
-    createRootFiber
-} from './core';
+export * from './core';
 
 export {
     Fiber,
