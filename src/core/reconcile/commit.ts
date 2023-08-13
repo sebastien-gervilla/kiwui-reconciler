@@ -11,10 +11,6 @@ export const removeElement = (fiber: Fiber) => {
         try {
             fiber.parentNode.removeChild(fiber.node)
         } catch (error) {
-            console.log("fiber:", fiber);
-            console.log("parentNode:", fiber.parentNode);
-            console.log("node:", fiber.node);
-            
             throw new Error(error as string)
         }
         // kidsRefer(fiber.kids)
@@ -45,7 +41,7 @@ const insertBefore = (fiber: Fiber, element: Fiber, after: Node | null) => {
             "element :", element,
             "after: ", after,
             error
-        )
+        );
 
         throw new Error();
     }
@@ -57,12 +53,6 @@ export const commit = (fiber: Fiber | null) => {
     const { op, before, element } = fiber.action || {};
     if (op) {
         if ((op & TAG.INSERT || op & TAG.MOVE) && element) {
-            // console.group('INSERT')
-            // console.log("fiber:", fiber)
-            // console.log("element:", element)
-            // console.log("before:", before)
-            // console.log("parent:", fiber.parentNode)
-            // console.groupEnd()
             if ((fiber instanceof FiberComponent) && fiber.child) {
                 if (fiber.action && fiber.child.action) {
                     fiber.child.action.op |= fiber.action.op
@@ -77,13 +67,6 @@ export const commit = (fiber: Fiber | null) => {
                     if (before instanceof FiberComponent)
                         beforeNode = getBeforeNode(before)
 
-                    // console.group('INSERTBEFORE')
-                    // console.log("fiber:", fiber)
-                    // console.log("element:", element)
-                    // console.log("beforeNode:", beforeNode)
-                    // console.log("parent:", fiber.parentNode)
-                    // console.groupEnd()
-                    
                     insertBefore(fiber, element, beforeNode)
                 }
             }
@@ -94,14 +77,25 @@ export const commit = (fiber: Fiber | null) => {
                 if (fiber.action && fiber.child.action)
                     fiber.child.action.op |= fiber.action.op
             }
-            else
+            else {
+                const hasProps = 
+                    fiber instanceof FiberComponent || 
+                    fiber instanceof FiberHostElement;
+
+                const oldProps = hasProps ?
+                    fiber.oldProps : {};
+                const newProps = hasProps ?
+                    fiber.props : {};
+
                 updateElement(
                     fiber.node, 
-                    fiber.old instanceof FiberHostElement ? fiber.old?.props || {} : {}, 
-                    fiber instanceof FiberHostElement ? fiber.props : {}
+                    oldProps || {}, 
+                    newProps || {}
                 );
+            }
         }
     }
+
     // refer(fiber.ref, fiber.node)
   
     fiber.action = null

@@ -5,6 +5,7 @@ export default class FiberComponent extends Fiber {
     public key?: Key | null | undefined;
     public tag: string;
     public props: Object;
+    public oldProps: Object | null = null;
 
     public component: FunctionComponent;
     public hooks: Hooks = {

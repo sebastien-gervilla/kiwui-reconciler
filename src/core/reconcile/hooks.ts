@@ -8,39 +8,52 @@ export const useState = <T>(initState: T): [T, Dispatch<SetStateAction<T>>] => {
   
 export const useReducer = <S, A>(
     reducer?: Reducer<S, A>,
-    initState?: S
+    initialState?: S
 ): [S, Dispatch<A>] => {
-    const [hook, current]: [any, FiberComponent] = getHook<S>(cursor++)
-    if (hook.length === 0) {
-        hook[0] = initState
-        hook[1] = (value: A | Dispatch<A>) => {
-            let v = reducer
+    const [hook, current]: [any, FiberComponent] = getHook<S>(cursor++);
+
+    if (hook.length) return hook;
+
+    // Initialize it if empty
+    hook[0] = initialState;
+    hook[1] = (value: A | Dispatch<A>) => {
+        let v = reducer
             ? reducer(hook[0], value as any)
             : isFn(value)
                 ? value(hook[0])
                 : value
-            if (hook[0] !== v) {
-                hook[0] = v
-                update(current)
-            }
+
+        if (hook[0] !== v) {
+            hook[0] = v
+            update(current)
         }
     }
+
     return hook
 }
 
 export const getHook = <S = Function | undefined, Dependency = any>(
     cursor: number
 ): [[S, Dependency], FiberComponent] => {
-    const current: FiberComponent = getCurrentFiber() as FiberComponent
+    const current = getCurrentFiber();
+    if (!(current instanceof FiberComponent))
+        throw new Error("useState can only be used in Function Components.");
+
+    // Get hooks or initialize them
     const hooks = current.hooks || (current.hooks = {
         states: [],
         effects: [],
         layouts: []
     });
-    if (cursor >= hooks.states.length) {
+
+    // Add state arrays if not done already
+    if (cursor >= hooks.states.length)
         hooks.states.push([] as IEffect)
-    }
-    return [(hooks.states[cursor] as unknown) as [S, Dependency], current]
+
+    return [
+        hooks.states[cursor] as [S, Dependency], 
+        current
+    ]
 }
   
 export type ContextType<T> = {

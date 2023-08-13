@@ -11,7 +11,6 @@ export default class Fiber {
     public parentNode!: HTMLElementEx;
     public wipNode: SageElementChildren[] = [];
     public kids: Fiber[] = [];
-    public old: Fiber | null = null;
 
     public action: Action | null = null;
 

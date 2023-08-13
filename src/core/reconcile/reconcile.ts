@@ -88,6 +88,7 @@ const bubble = (fiber: Fiber) => {
 }
 
 const updateHook = (fiber: FiberComponent): any => {
+    console.log("UPDATING COMP:", fiber);
     resetCursor()
     currentFiber = fiber
     const children = fiber.component(fiber.props)
@@ -134,9 +135,28 @@ const createFibersFromChildren = (children: SageElementChildren[]): Fiber[] => {
 }
 
 const reconcileChidren = (fiber: Fiber, children: SageElementChildren[]): void => { // TODO: SageNode ?
+    if (fiber instanceof FiberComponent) {
+        console.log("======================");
+        console.log("Fiber: ", fiber);
+        console.log("Fiber: ", fiber.kids);
+        console.log("======================");
+    }
     const currentChildren = fiber.kids || [];
+    if (fiber instanceof FiberComponent) {
+        console.log("======================");
+        console.log("KIDOS: ", fiber.kids);
+        console.log("======================");
+    }
     const domChildren = (fiber.kids = createFibersFromChildren(children));
 
+    if (fiber instanceof FiberComponent) {
+        console.log("======================");
+        console.log("BEFORE DIFF:", fiber);
+        console.log("BEFORE KIDS:", fiber.kids);
+        console.log(currentChildren);
+        console.log(domChildren);
+        console.log("======================");
+    }
     const actions = diff(currentChildren, domChildren)
   
     let previous = null;
@@ -185,8 +205,12 @@ const diff = function (oldChildren: Fiber[], newChildren: Fiber[]) {
     // Index table: 0 - unused, 1 - used
     let oldIndexTable = new Uint8Array(oldChildren.length);
 
+    console.log("========================")
     console.log("old: ", oldChildren)
+    console.log("oldTable: ", oldTable)
     console.log("new: ", newChildren)
+    console.log("newTable: ", newTable)
+    console.log("========================")
 
     // Check for differences
     for (i = j = 0; i !== oldChildren.length || j !== newChildren.length;) {
@@ -211,7 +235,8 @@ const diff = function (oldChildren: Fiber[], newChildren: Fiber[]) {
         }
         
         if (getKey(oldChild) === getKey(newChild)) {
-            clone(oldChild, newChild)
+            newChildren[j] = copyFiber(oldChild, newChild) // Don't clone, just update
+
             actions.push({ op: TAG.UPDATE })
             i++; j++;
             continue;
@@ -228,7 +253,7 @@ const diff = function (oldChildren: Fiber[], newChildren: Fiber[]) {
             actions.push({ op: TAG.INSERT, element: newChild, before: oldChildren[i] })
             j++
         } else {
-            clone(oldChildren[newInOldTable], newChild)
+            newChildren[j] = copyFiber(oldChildren[newInOldTable], newChild)
             actions.push({ op: TAG.MOVE, element: oldChildren[newInOldTable], before: oldChildren[i] })
             oldIndexTable[newInOldTable] = 1; // Mark as used
             j++
@@ -237,14 +262,58 @@ const diff = function (oldChildren: Fiber[], newChildren: Fiber[]) {
     return actions
 }
 
-function clone(a: Fiber, b: Fiber) {
-    if (a instanceof FiberComponent && b instanceof FiberComponent)
-        b.hooks = a.hooks
+/**
+ * @deprecated Cloning actually causes desynchronisation between parallel updates
+ */
+function clone(oldFiber: Fiber, newFiber: Fiber) {
+    const areComponents = 
+        oldFiber instanceof FiberComponent && 
+        newFiber instanceof FiberComponent;
+
+    const areElements = 
+        oldFiber instanceof FiberHostElement && 
+        newFiber instanceof FiberHostElement;
+
+    if (areComponents)
+        newFiber.hooks = oldFiber.hooks
 
     // b.ref = a.ref
-    b.node = a.node // tempfix ?
-    b.kids = a.kids
-    b.old = a
+    newFiber.node = oldFiber.node // tempfix ?
+    newFiber.kids = oldFiber.kids
+
+    if (areElements || areComponents)
+        newFiber.oldProps = oldFiber.props
+}
+
+const copyFiber = (oldFiber: Fiber, newFiber: Fiber) => {
+    const isComponent = oldFiber instanceof FiberComponent;
+    const isElement = oldFiber instanceof FiberHostElement;
+
+    const { node, kids } = oldFiber;
+    const oldProps = (isComponent || isElement) ? 
+        oldFiber.props : null;
+    const hooks = oldFiber instanceof FiberComponent
+        ? oldFiber.hooks
+        : undefined
+
+    const entries = Object.entries(newFiber) as 
+        [keyof Fiber, Fiber[keyof Fiber]][];
+        
+    for (const [key, value] of entries)
+        if (typeof value !== 'function')
+            (oldFiber as any)[key] = value
+    
+    if (oldFiber instanceof FiberComponent && hooks)
+        oldFiber.hooks = hooks
+
+    // b.ref = a.ref
+    oldFiber.node = node // tempfix ?
+    oldFiber.kids = kids
+
+    if (isComponent || isElement)
+        oldFiber.oldProps = oldProps;
+
+    return oldFiber
 }
 
 export const enum TAG {
