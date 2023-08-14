@@ -1,7 +1,8 @@
 import { Fiber, FiberComponent, FiberHostElement } from "../../classes"
 import { HTMLElementEx } from "../../classes/Fiber/Fiber"
-import { updateElement } from "./dom"
-import { TAG } from "./reconcile"
+import { isFiberComponent, isFiberElement } from "../../utils/is-type"
+import { updateElement } from "../dom"
+import { TAG } from "../reconcile"
 
 export const removeElement = (fiber: Fiber) => {
     if (fiber instanceof FiberComponent) {
@@ -50,49 +51,36 @@ const insertBefore = (fiber: Fiber, element: Fiber, after: Node | null) => {
 export const commit = (fiber: Fiber | null) => {
     if (!fiber) return;
 
-    const { op, before, element } = fiber.action || {};
-    if (op) {
-        if ((op & TAG.INSERT || op & TAG.MOVE) && element) {
-            if ((fiber instanceof FiberComponent) && fiber.child) {
-                if (fiber.action && fiber.child.action) {
-                    fiber.child.action.op |= fiber.action.op
-                    fiber.child.action.before = fiber.action.before // TODO: Fragments
-                }
-            }
-            else {
-                if (!before)
-                    insertBefore(fiber, element, null)
-                else {
-                    let beforeNode: HTMLElementEx | null = before.node;
-                    if (before instanceof FiberComponent)
-                        beforeNode = getBeforeNode(before)
+    if (!fiber.action) {
+        commit(fiber.child);
+        commit(fiber.sibling);
+        return;
+    }
 
-                    insertBefore(fiber, element, beforeNode)
-                }
-            }
+    const { op, element, before } = fiber.action;
+    if ((op & TAG.INSERT || op & TAG.MOVE) && element)
+        insertFiber(fiber, element, before);
+
+    if (op & TAG.UPDATE) {
+        if ((fiber instanceof FiberComponent) && fiber.child) {
+            if (fiber.action && fiber.child.action)
+                fiber.child.action.op |= fiber.action.op
         }
+        else {
+            const hasProps = 
+                fiber instanceof FiberComponent || 
+                fiber instanceof FiberHostElement;
 
-        if (op & TAG.UPDATE) {
-            if ((fiber instanceof FiberComponent) && fiber.child) {
-                if (fiber.action && fiber.child.action)
-                    fiber.child.action.op |= fiber.action.op
-            }
-            else {
-                const hasProps = 
-                    fiber instanceof FiberComponent || 
-                    fiber instanceof FiberHostElement;
+            const oldProps = hasProps ?
+                fiber.oldProps : {};
+            const newProps = hasProps ?
+                fiber.props : {};
 
-                const oldProps = hasProps ?
-                    fiber.oldProps : {};
-                const newProps = hasProps ?
-                    fiber.props : {};
-
-                updateElement(
-                    fiber.node, 
-                    oldProps || {}, 
-                    newProps || {}
-                );
-            }
+            updateElement(
+                fiber.node, 
+                oldProps || {}, 
+                newProps || {}
+            );
         }
     }
 
@@ -102,6 +90,46 @@ export const commit = (fiber: Fiber | null) => {
   
     commit(fiber.child)
     commit(fiber.sibling)
+}
+
+const insertFiber = (fiber: Fiber, element: Fiber, before: Fiber | undefined) => {
+    if (isFiberComponent(fiber) && fiber.child) {
+        if (fiber.action && fiber.child.action) {
+            fiber.child.action.op |= fiber.action.op
+            fiber.child.action.before = fiber.action.before // TODO: Fragments support
+        }
+        return;
+    }
+
+    if (!before)
+        insertBefore(fiber, element, null)
+    else {
+        let beforeNode: HTMLElementEx | null = before.node;
+        if (before instanceof FiberComponent)
+            beforeNode = getBeforeNode(before)
+
+        insertBefore(fiber, element, beforeNode)
+    }
+}
+
+const updateFiber = (fiber: Fiber) => {
+    if (isFiberComponent(fiber) && fiber.child) {
+        if (fiber.action && fiber.child.action)
+            fiber.child.action.op |= fiber.action.op
+        return;
+    }
+
+    const hasProps = 
+        isFiberComponent(fiber) || 
+        isFiberElement(fiber);
+
+    if (!hasProps) return;
+
+    updateElement(
+        fiber.node, 
+        fiber.oldProps || {}, 
+        fiber.props || {}
+    );
 }
 
 const getBeforeNode = (fiberComponent: FiberComponent) => {

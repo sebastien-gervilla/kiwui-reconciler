@@ -1,0 +1,1 @@
+export { createElement, updateElement } from './dom';

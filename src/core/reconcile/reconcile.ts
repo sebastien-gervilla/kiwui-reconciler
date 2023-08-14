@@ -1,11 +1,11 @@
 import { SageElement, SageElementChildren, SageHTML } from "sage";
 import { Fiber, FiberComponent, FiberHostElement, FiberHostText } from "../../classes";
 import { isComponent } from "../../utils/is-type";
-import { commit, removeElement } from "./commit";
+import { commit, removeElement } from "../commit";
 import { Action, HTMLElementEx } from "../../classes/Fiber/Fiber";
-import { createElement } from "./dom";
-import { schedule, shouldYield } from "./schedule";
-import { resetCursor } from "./hooks";
+import { createElement } from "../dom";
+import { schedule, shouldYield } from "../schedule";
+import { resetCursor } from "../hooks";
 
 let currentFiber: Fiber | null = null;
 export const getCurrentFiber = () => currentFiber || null
@@ -24,14 +24,13 @@ export const update = (fiber: Fiber) => {
     }
 }
 
-export const reconcile = (fiber?: Fiber): boolean | null | undefined => {
+export const reconcile = (fiber?: Fiber): Function | null => {
     while (fiber && !shouldYield())
         fiber = capture(fiber) as Fiber;
 
     if (!fiber) return null;
 
-    reconcile.bind(null, fiber);
-    return 
+    return reconcile.bind(null, fiber);
 }
 
 // Tag all fibers for updates
@@ -88,7 +87,6 @@ const bubble = (fiber: Fiber) => {
 }
 
 const updateHook = (fiber: FiberComponent): any => {
-    console.log("UPDATING COMP:", fiber);
     resetCursor()
     currentFiber = fiber
     const children = fiber.component(fiber.props)
@@ -135,28 +133,9 @@ const createFibersFromChildren = (children: SageElementChildren[]): Fiber[] => {
 }
 
 const reconcileChidren = (fiber: Fiber, children: SageElementChildren[]): void => { // TODO: SageNode ?
-    if (fiber instanceof FiberComponent) {
-        console.log("======================");
-        console.log("Fiber: ", fiber);
-        console.log("Fiber: ", fiber.kids);
-        console.log("======================");
-    }
     const currentChildren = fiber.kids || [];
-    if (fiber instanceof FiberComponent) {
-        console.log("======================");
-        console.log("KIDOS: ", fiber.kids);
-        console.log("======================");
-    }
     const domChildren = (fiber.kids = createFibersFromChildren(children));
 
-    if (fiber instanceof FiberComponent) {
-        console.log("======================");
-        console.log("BEFORE DIFF:", fiber);
-        console.log("BEFORE KIDS:", fiber.kids);
-        console.log(currentChildren);
-        console.log(domChildren);
-        console.log("======================");
-    }
     const actions = diff(currentChildren, domChildren)
   
     let previous = null;
@@ -207,9 +186,7 @@ const diff = function (oldChildren: Fiber[], newChildren: Fiber[]) {
 
     console.log("========================")
     console.log("old: ", oldChildren)
-    console.log("oldTable: ", oldTable)
     console.log("new: ", newChildren)
-    console.log("newTable: ", newTable)
     console.log("========================")
 
     // Check for differences

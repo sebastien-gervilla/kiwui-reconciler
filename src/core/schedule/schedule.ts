@@ -1,5 +1,7 @@
 import { Fiber } from "../../classes"
 
+// TODO: Relocate this in another package ?
+
 export interface ITask {
     callback?: ITaskCallback
     fiber: Fiber
@@ -8,7 +10,7 @@ export interface ITask {
 export type ITaskCallback = ((time: boolean) => boolean) | null
 
 const queue: ITask[] = []
-const threshold: number = 500
+const threshold: number = 4
 const transitions: any[] = []
 let deadline: number = 0
 

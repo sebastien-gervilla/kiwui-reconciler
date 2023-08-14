@@ -1,4 +1,4 @@
-import { isStr, TAG } from './reconcile'
+import { isStr, TAG } from '../reconcile'
 import { Fiber, FiberHostElement, FiberHostText } from '../../classes'
 
 export type Attributes = {[key: string]: any}

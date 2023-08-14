@@ -1,5 +1,5 @@
 import { Fiber, FiberComponent } from '../../classes'
-import { update, isFn, IEffect, getCurrentFiber } from './reconcile'
+import { update, isFn, IEffect, getCurrentFiber } from '../reconcile'
 import { SageNode } from 'sage/dist/types'
 
 export const useState = <T>(initState: T): [T, Dispatch<SetStateAction<T>>] => {
