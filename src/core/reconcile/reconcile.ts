@@ -1,11 +1,12 @@
 import { SageElement, SageElementChildren, SageHTML } from "sage";
 import { Fiber, FiberComponent, FiberHostElement, FiberHostText } from "../../classes";
-import { isComponent } from "../../utils/is-type";
+import { isComponent, isSageElement } from "../../utils/is-type";
 import { commit, removeElement } from "../commit";
 import { Action, HTMLElementEx } from "../../classes/Fiber/Fiber";
 import { createElement } from "../dom";
 import { schedule, shouldYield } from "../schedule";
 import { resetCursor } from "../hooks";
+import { Effect } from "../hooks/hooks.types";
 
 let currentFiber: Fiber | null = null;
 export const getCurrentFiber = () => currentFiber || null
@@ -24,7 +25,7 @@ export const update = (fiber: Fiber) => {
     }
 }
 
-export const reconcile = (fiber?: Fiber): Function | null => {
+const reconcile = (fiber?: Fiber): Function | null => {
     while (fiber && !shouldYield())
         fiber = capture(fiber) as Fiber;
 
@@ -34,7 +35,7 @@ export const reconcile = (fiber?: Fiber): Function | null => {
 }
 
 // Tag all fibers for updates
-export const capture = (fiber: Fiber): Fiber | undefined | null => {
+const capture = (fiber: Fiber): Fiber | undefined | null => {
     if (fiber instanceof FiberComponent) {
         // const memoFiber = memo(fiber)
         // if (memoFiber) {
@@ -56,8 +57,6 @@ const getSibling = (fiber: Fiber) => {
     while (fiber) {
         bubble(fiber)
         if (fiber.isDirty) {
-            console.group("COMMITING: ", fiber)
-            console.groupEnd()
             fiber.isDirty = false
             commit(fiber)
             return null
@@ -68,9 +67,7 @@ const getSibling = (fiber: Fiber) => {
     return null
 }
 
-export type IEffect = [Function?, number?, Function?]
-
-const side = (effects: IEffect[]): void => {
+const side = (effects: Effect[]): void => {
     effects.forEach(e => e[2] && e[2]())
     effects.forEach(e => (e[2] = e[0]?.()))
     effects.length = 0
@@ -92,14 +89,6 @@ const updateHook = (fiber: FiberComponent): any => {
     const children = fiber.component(fiber.props)
     reconcileChidren(fiber, children ? [children] : [])
 }
-
-// TODO: What if the component returns a SageNode or SageElement[] ?
-
-const simpleVnode = (children: SageElement | null): SageElementChildren[] =>
-    isStr(children) ? createText(children) : children
-
-export const createText = (vnode: any) =>
-  ({ type: '#text', props: { nodeValue: vnode + '' } } as any)
 
 const updateHost = (fiber: FiberHostElement | FiberHostText): void => {
     fiber.parentNode = (getParentNode(fiber) as any) || {}
@@ -155,8 +144,7 @@ const reconcileChidren = (fiber: Fiber, children: SageElementChildren[]): void =
     }
 }
 
-// TODO: Should Sage flatten SageElements ?
-const diff = function (oldChildren: Fiber[], newChildren: Fiber[]) {
+const diff = (oldChildren: Fiber[], newChildren: Fiber[]) => {
     var actions: Action[] = [];
     let oldTable: KeysTable = {};
     let newTable: KeysTable = {};
@@ -172,7 +160,7 @@ const diff = function (oldChildren: Fiber[], newChildren: Fiber[]) {
     }
     
     let i, j;
-    // [performance] - Map nodes to an IndexTable with keys
+
     // TODO: Huge problem, if elements have no keys of same type, it won't push it
     // Here warning, put keys when array ?
     for (i = 0; i < oldChildren.length; i++)
@@ -183,11 +171,6 @@ const diff = function (oldChildren: Fiber[], newChildren: Fiber[]) {
 
     // Index table: 0 - unused, 1 - used
     let oldIndexTable = new Uint8Array(oldChildren.length);
-
-    console.log("========================")
-    console.log("old: ", oldChildren)
-    console.log("new: ", newChildren)
-    console.log("========================")
 
     // Check for differences
     for (i = j = 0; i !== oldChildren.length || j !== newChildren.length;) {
@@ -306,10 +289,3 @@ export const enum TAG {
 type KeysTable = {
     [key: string]: number
 }
-
-const isSageElement = (value: SageElementChildren): value is SageElement => 
-    !!value && typeof value === 'object';
-
-export const isFn = (x: any): x is Function => typeof x === 'function'
-export const isStr = (s: any): s is number | string =>
-    typeof s === 'number' || typeof s === 'string'
