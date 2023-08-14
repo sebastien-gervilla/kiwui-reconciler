@@ -1,11 +1,35 @@
-import { Fiber, FiberComponent, FiberHostElement } from "../../classes"
+import { Fiber, FiberComponent } from "../../classes"
 import { HTMLElementEx } from "../../classes/Fiber/Fiber"
 import { isFiberComponent, isFiberElement } from "../../utils/is-type"
 import { updateElement } from "../dom"
 import { TAG } from "../reconcile"
 
+export const commit = (fiber: Fiber | null) => {
+    if (!fiber) return;
+
+    if (!fiber.action) {
+        commit(fiber.child);
+        commit(fiber.sibling);
+        return;
+    }
+
+    const { op, element, before } = fiber.action;
+    if ((op & TAG.INSERT || op & TAG.MOVE) && element)
+        insertFiber(fiber, element, before);
+
+    if (op & TAG.UPDATE)
+        updateFiber(fiber);
+
+    // refer(fiber.ref, fiber.node)
+  
+    fiber.action = null
+  
+    commit(fiber.child)
+    commit(fiber.sibling)
+}
+
 export const removeElement = (fiber: Fiber) => {
-    if (fiber instanceof FiberComponent) {
+    if (isFiberComponent(fiber)) {
         fiber.hooks && fiber.hooks.states.forEach(state => state[2] && state[2]())
         fiber.kids.forEach(removeElement)
     } else {
@@ -32,65 +56,8 @@ export const removeElement = (fiber: Fiber) => {
 //     })
 // }
 
-const insertBefore = (fiber: Fiber, element: Fiber, after: Node | null) => {
-    try {
-        fiber.parentNode.insertBefore(element.node, after);
-    } catch (error) {
-        console.error(
-            "Error with :",
-            "fiber :", fiber,
-            "element :", element,
-            "after: ", after,
-            error
-        );
-
-        throw new Error();
-    }
-}
-
-export const commit = (fiber: Fiber | null) => {
-    if (!fiber) return;
-
-    if (!fiber.action) {
-        commit(fiber.child);
-        commit(fiber.sibling);
-        return;
-    }
-
-    const { op, element, before } = fiber.action;
-    if ((op & TAG.INSERT || op & TAG.MOVE) && element)
-        insertFiber(fiber, element, before);
-
-    if (op & TAG.UPDATE) {
-        if ((fiber instanceof FiberComponent) && fiber.child) {
-            if (fiber.action && fiber.child.action)
-                fiber.child.action.op |= fiber.action.op
-        }
-        else {
-            const hasProps = 
-                fiber instanceof FiberComponent || 
-                fiber instanceof FiberHostElement;
-
-            const oldProps = hasProps ?
-                fiber.oldProps : {};
-            const newProps = hasProps ?
-                fiber.props : {};
-
-            updateElement(
-                fiber.node, 
-                oldProps || {}, 
-                newProps || {}
-            );
-        }
-    }
-
-    // refer(fiber.ref, fiber.node)
-  
-    fiber.action = null
-  
-    commit(fiber.child)
-    commit(fiber.sibling)
-}
+const insertBefore = (fiber: Fiber, element: Fiber, after: Node | null) =>
+    fiber.parentNode.insertBefore(element.node, after);
 
 const insertFiber = (fiber: Fiber, element: Fiber, before: Fiber | undefined) => {
     if (isFiberComponent(fiber) && fiber.child) {
@@ -152,7 +119,7 @@ const getBeforeNode = (fiberComponent: FiberComponent) => {
         return null;
     }
 
-    while (fiber instanceof FiberComponent) {
+    while (fiber && isFiberComponent(fiber)) {
         if (fiber.child) {
             fiber = fiber.child;
             continue;
