@@ -1,6 +1,8 @@
 import { Fiber, FiberComponent } from '../../classes'
-import { update, isFn, IEffect, getCurrentFiber } from '../reconcile'
+import { isFunction } from '../../utils/is-type'
+import { update, getCurrentFiber } from '../reconcile'
 import { SageNode } from 'sage/dist/types'
+import { Effect } from './hooks.types'
 
 export const useState = <T>(initState: T): [T, Dispatch<SetStateAction<T>>] => {
     return useReducer(null as any, initState)
@@ -19,7 +21,7 @@ export const useReducer = <S, A>(
     hook[1] = (value: A | Dispatch<A>) => {
         let v = reducer
             ? reducer(hook[0], value as any)
-            : isFn(value)
+            : isFunction(value)
                 ? value(hook[0])
                 : value
 
@@ -48,7 +50,7 @@ export const getHook = <S = Function | undefined, Dependency = any>(
 
     // Add state arrays if not done already
     if (cursor >= hooks.states.length)
-        hooks.states.push([] as IEffect)
+        hooks.states.push([] as Effect)
 
     return [
         hooks.states[cursor] as [S, Dependency], 
