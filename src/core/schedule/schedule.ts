@@ -1,64 +1,62 @@
-import { Fiber } from "../../classes"
+import { Task } from "./schedule.types"
 
 // TODO: Relocate this in another package ?
 
-export interface ITask {
-    callback?: ITaskCallback
-    fiber: Fiber
-}
-
-export type ITaskCallback = ((time: boolean) => boolean) | null
-
-const queue: ITask[] = []
+const queue: Task[] = []
 const threshold: number = 4
 const transitions: any[] = []
 let deadline: number = 0
 
-export const startTransition = (cb: any) => {
-    transitions.push(cb) && translate()
+export const schedule = (callback: () => any) => {
+    queue.push({ callback });
+    startTransition(flush);
 }
 
-export const schedule = (callback: any): void => {
-    queue.push({ callback } as any)
-    startTransition(flush)
-}
+const startTransition = (cb: any) =>
+    transitions.push(cb) && translate();
 
-const task = (pending: boolean) => {
-    const cb = () => transitions.splice(0, 1).forEach(c => c())
-    if (!pending && typeof queueMicrotask !== 'undefined') {
-        return () => queueMicrotask(cb)
-    }
+const enqueueTask = (pending: boolean) => {
+    const callback = () => transitions.splice(0, 1).forEach(c => c())
+
+    // TODO: Group these conditions elsewhere - Factory ?
+    if (!pending && typeof queueMicrotask !== 'undefined')
+        return () => queueMicrotask(callback);
+
     if (typeof MessageChannel !== 'undefined') {
-        const { port1, port2 } = new MessageChannel()
-        port1.onmessage = cb
-        return () => port2.postMessage(null)
+        const { port1, port2 } = new MessageChannel();
+        port1.onmessage = callback;
+        return () => port2.postMessage(null);
     }
-    return () => setTimeout(cb)
+
+    return () => setTimeout(callback);
 }
 
-let translate = task(false)
+let translate = enqueueTask(false);
 
-const flush = (): void => {
+const flush = () => {
     deadline = getTime() + threshold
-    let job = peek(queue)
-    while (job && !shouldYield()) {
-        const { callback } = job as any
-        job.callback = null
-        const next = callback()
-        if (next) {
-            job.callback = next as any
-        } else {
-            queue.shift()
-        }
-        job = peek(queue)
+    
+    let task = peek();
+    while (task && !shouldYield()) {
+        const { callback } = task;
+        const next = callback();
+
+        if (next)
+            task.callback = next;
+        else
+            queue.shift();
+
+        task = peek();
     }
-    job && (translate = task(shouldYield())) && startTransition(flush)
+
+    if (!task) return;
+
+    translate = enqueueTask(shouldYield());
+    startTransition(flush);
 }
 
-export const shouldYield = (): boolean => {
-    return getTime() >= deadline
-}
+export const shouldYield = () => getTime() >= deadline;
 
-export const getTime = () => performance.now()
+export const getTime = () => performance.now();
 
-const peek = (queue: ITask[]) => queue[0]
+const peek = (): Task | undefined => queue[0]
