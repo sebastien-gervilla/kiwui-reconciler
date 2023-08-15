@@ -5,6 +5,9 @@ import { SageHTML } from "sage";
 
 export const isValidTag = (tag: keyof SageHTML): tag is keyof SageHTML => HTMLTags.includes(tag);
 
+export const isValidText = (value: any): boolean => 
+    typeof value === 'string' || typeof value === 'number';
+
 //
 // Contants
 // ===============================================================

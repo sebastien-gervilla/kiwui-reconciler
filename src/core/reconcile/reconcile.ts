@@ -7,7 +7,7 @@ import { schedule, shouldYield } from "../schedule";
 import { initializeDispatcher, resetCursor } from "../hooks";
 import { Effect } from "../hooks/hooks.types";
 import { diffing } from "./diffing";
-import { isValidTag } from "../../utils/validations";
+import { isValidTag, isValidText } from "../../utils/validations";
 
 let currentFiber: FiberComponent | null = null;
 export const getCurrentFiber = () => currentFiber;
@@ -121,13 +121,22 @@ const getParentNode = (fiber: Fiber) => {
 }
 
 const createFibersFromChildren = (children: SageElementChildren[]): Fiber[] => {
-    return children.map(child => 
-        isSageElement(child)
-            ? isComponent(child)
+    let fibers: Fiber[] = [];
+    for (const child of children) {
+        if (!isSageElement(child)) {
+            if (isValidText(child))
+                fibers.push(new FiberHostText(`${child}`));
+            continue;
+        }
+
+        fibers.push(
+            isComponent(child)
                 ? new FiberComponent(child.type, child.props)
                 : new FiberHostElement(child.type, child.props)
-            : new FiberHostText(`${child}`)
-    );
+        );
+    }
+    
+    return fibers;
 }
 
 const reconcileChidren = (fiber: Fiber, children: SageElementChildren[]): void => { // TODO: SageNode ?
