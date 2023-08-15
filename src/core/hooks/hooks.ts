@@ -1,42 +1,15 @@
-import { Fiber, FiberComponent } from '../../classes'
-import { isFunction } from '../../utils/is-type'
-import { update, getCurrentFiber } from '../reconcile'
-import { SageNode } from 'sage/dist/types'
+import { FiberComponent } from '../../classes'
+import { getCurrentFiber } from '../reconcile'
 import { Effect } from './hooks.types'
 
-export const useState = <T>(initState: T): [T, Dispatch<SetStateAction<T>>] => {
-    return useReducer(null as any, initState)
-}
-  
-export const useReducer = <S, A>(
-    reducer?: Reducer<S, A>,
-    initialState?: S
-): [S, Dispatch<A>] => {
-    const [hook, current]: [any, FiberComponent] = getHook<S>(cursor++);
+// Tracking hooks
+let cursor = 0;
+export const resetCursor = () => cursor = 0;
+export const incrementCursor = () => cursor++;
 
-    if (hook.length) return hook;
-
-    // Initialize it if empty
-    hook[0] = initialState;
-    hook[1] = (value: A | Dispatch<A>) => {
-        let v = reducer
-            ? reducer(hook[0], value as any)
-            : isFunction(value)
-                ? value(hook[0])
-                : value
-
-        if (hook[0] !== v) {
-            hook[0] = v
-            update(current)
-        }
-    }
-
-    return hook
-}
-
-export const getHook = <S = Function | undefined, Dependency = any>(
+export const getHook = <State = Function | undefined, Dependency = any>(
     cursor: number
-): [[S, Dependency], FiberComponent] => {
+): [[State, Dependency], FiberComponent] => {
     const current = getCurrentFiber();
     if (!(current instanceof FiberComponent))
         throw new Error("useState can only be used in Function Components.");
@@ -53,24 +26,7 @@ export const getHook = <S = Function | undefined, Dependency = any>(
         hooks.states.push([] as Effect)
 
     return [
-        hooks.states[cursor] as [S, Dependency], 
+        hooks.states[cursor] as [State, Dependency], 
         current
     ]
 }
-  
-export type ContextType<T> = {
-    ({ value, children }: { value: T, children: SageNode }): SageNode;
-    initialValue: T;
-}
-
-const EMPTY_ARR = []
-
-let cursor = 0
-
-export const resetCursor = () => {
-  cursor = 0
-}
-
-export type SetStateAction<S> = S | ((prevState: S) => S)
-export type Dispatch<A> = (value: A, resume?: boolean) => void
-export type Reducer<S, A> = (prevState: S, action: A) => S
