@@ -1,10 +1,11 @@
+import { enqueueTask } from "./enqueueTask"
 import { Task } from "./schedule.types"
 
 // TODO: Relocate this in another package ?
 
 const queue: Task[] = []
 const threshold: number = 4
-const transitions: any[] = []
+const transitions: Function[] = []
 let deadline: number = 0
 
 export const schedule = (callback: () => any) => {
@@ -12,26 +13,10 @@ export const schedule = (callback: () => any) => {
     startTransition(flush);
 }
 
-const startTransition = (cb: any) =>
+const startTransition = (cb: Function) =>
     transitions.push(cb) && translate();
 
-const enqueueTask = (pending: boolean) => {
-    const callback = () => transitions.splice(0, 1).forEach(c => c())
-
-    // TODO: Group these conditions elsewhere - Factory ?
-    if (!pending && typeof queueMicrotask !== 'undefined')
-        return () => queueMicrotask(callback);
-
-    if (typeof MessageChannel !== 'undefined') {
-        const { port1, port2 } = new MessageChannel();
-        port1.onmessage = callback;
-        return () => port2.postMessage(null);
-    }
-
-    return () => setTimeout(callback);
-}
-
-let translate = enqueueTask(false);
+let translate = enqueueTask(false, transitions);
 
 const flush = () => {
     deadline = getTime() + threshold
@@ -51,12 +36,12 @@ const flush = () => {
 
     if (!task) return;
 
-    translate = enqueueTask(shouldYield());
+    translate = enqueueTask(shouldYield(), transitions);
     startTransition(flush);
 }
 
 export const shouldYield = () => getTime() >= deadline;
 
-export const getTime = () => performance.now();
+const getTime = () => performance.now();
 
 const peek = (): Task | undefined => queue[0]
