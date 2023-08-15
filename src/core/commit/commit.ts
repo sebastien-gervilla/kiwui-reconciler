@@ -1,8 +1,7 @@
 import { Fiber, FiberComponent } from "../../classes"
-import { HTMLElementEx } from "../../classes/Fiber/Fiber"
 import { isFiberComponent, isFiberElement } from "../../utils/is-type"
 import { updateElement } from "../dom"
-import { TAG } from "../reconcile"
+import { TAG } from "../reconcile/reconcile.types";
 
 export const commit = (fiber: Fiber | null) => {
     if (!fiber) return;
@@ -71,7 +70,7 @@ const insertFiber = (fiber: Fiber, element: Fiber, before: Fiber | undefined) =>
     if (!before)
         insertBefore(fiber, element, null)
     else {
-        let beforeNode: HTMLElementEx | null = before.node;
+        let beforeNode: HTMLElement | null = before.node;
         if (before instanceof FiberComponent)
             beforeNode = getBeforeNode(before)
 

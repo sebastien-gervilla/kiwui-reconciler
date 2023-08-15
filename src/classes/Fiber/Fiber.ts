@@ -1,14 +1,14 @@
 import { SageElementChildren } from "sage";
 import { FiberType } from "../../types"
-import { TAG } from "../../core";
+import { Action } from "../../core/reconcile/reconcile.types";
 
 export default class Fiber {
     public parent: Fiber | null = null;
     public child: Fiber | null = null;
     public sibling: Fiber | null = null;
 
-    public node!: HTMLElementEx;
-    public parentNode!: HTMLElementEx;
+    public node!: HTMLElement;
+    public parentNode!: HTMLElement;
     public wipNode: SageElementChildren[] = [];
     public kids: Fiber[] = [];
 
@@ -22,11 +22,3 @@ export default class Fiber {
 
     constructor(public type: FiberType) {}
 }
-
-export type Action = {
-    op: TAG
-    element?: Fiber
-    before?: Fiber
-}
-
-export type HTMLElementEx = HTMLElement & { last: Fiber | null }

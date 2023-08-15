@@ -1,7 +1,7 @@
-import { TAG } from '../reconcile'
 import { FiberHostElement, FiberHostText } from '../../classes'
 import { CSSStyleKey, HTMLAttributes } from 'sage'
 import { isFiberText } from '../../utils/is-type'
+import { TAG } from '../reconcile/reconcile.types';
 
 // TODO: Relocation to sage-dom-bindings ?
 
