@@ -12,13 +12,13 @@ let currentFiber: Fiber | null = null;
 export const getCurrentFiber = () => currentFiber || null
 
 let rootFiber: Fiber | null = null
-export const render = (vnode: SageElement<keyof SageHTML>, node: HTMLElement): void => {
-    rootFiber = new FiberHostElement('div', { children: [vnode] })
-    rootFiber.node = node
+export const render = (children: SageElement<keyof SageHTML>, root: HTMLElement): void => {
+    rootFiber = new FiberHostElement(children.type, { children: [children] });
+    rootFiber.node = root;
     Dispatcher.current = {
         useState
-    }
-    update(rootFiber)
+    };
+    update(rootFiber);
 }
 
 export const update = (fiber: Fiber) => {
@@ -76,7 +76,7 @@ const side = (effects: Effect[]): void => {
 }
 // Execute hooks
 const bubble = (fiber: Fiber) => {
-    if (!(fiber instanceof FiberComponent))
+    if (!isFiberComponent(fiber))
         return;
 
     if (fiber.hooks) {
@@ -93,7 +93,7 @@ const updateComponent = (fiber: FiberComponent): any => {
 }
 
 const updateHost = (fiber: FiberHostElement | FiberHostText): void => {
-    fiber.parentNode = (getParentNode(fiber) as any) || {};
+    fiber.parentNode = getParentNode(fiber);
     if (!fiber.node) {
         // if (fiber.type === 'svg') fiber.lane |= TAG.SVG
         fiber.node = createElement(fiber) as HTMLElement;
@@ -101,7 +101,7 @@ const updateHost = (fiber: FiberHostElement | FiberHostText): void => {
     reconcileChidren(fiber, isFiberElement(fiber) ? fiber.props.children || [] : []); // TODO: Don't reconcile text
 }
 
-const getParentNode = (fiber: Fiber): HTMLElement | undefined => {
+const getParentNode = (fiber: Fiber) => {
     let parent = fiber.parent
     while (parent) {
         if (!isFiberComponent(parent)) 
@@ -110,7 +110,10 @@ const getParentNode = (fiber: Fiber): HTMLElement | undefined => {
         parent = parent.parent;
     }
 
-    return undefined
+    throw new Error(`
+        Couldn't find parent node.
+        Root element doesn't exist.
+    `);
 }
 
 const createFibersFromChildren = (children: SageElementChildren[]): Fiber[] => {
