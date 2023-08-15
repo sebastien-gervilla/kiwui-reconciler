@@ -1,8 +1,3 @@
-export * from './core';
+export { createFiberRoot, update } from './core';
 
-export {
-    Fiber,
-    FiberComponent,
-    FiberHostElement,
-    FiberHostText
-} from './classes';
+export { FiberHostElement } from './classes';

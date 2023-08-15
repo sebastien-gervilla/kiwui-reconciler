@@ -1,3 +1,1 @@
-export { resetCursor } from './hooks';
-
-export { useState } from './useState';
+export { resetCursor, initializeDispatcher } from './hooks';

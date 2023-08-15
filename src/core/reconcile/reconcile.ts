@@ -1,24 +1,24 @@
-import { Dispatcher, SageElement, SageElementChildren, SageHTML } from "sage";
+import { SageElementChildren, SageHTML } from "sage";
 import { Fiber, FiberComponent, FiberHostElement, FiberHostText } from "../../classes";
 import { isComponent, isFiberComponent, isFiberElement, isFiberText, isSageElement } from "../../utils/is-type";
 import { commit } from "../commit";
 import { createElement } from "../dom";
 import { schedule, shouldYield } from "../schedule";
-import { resetCursor, useState } from "../hooks";
+import { initializeDispatcher, resetCursor } from "../hooks";
 import { Effect } from "../hooks/hooks.types";
 import { diffing } from "./diffing";
+import { isValidTag } from "../../utils/validations";
 
-let currentFiber: Fiber | null = null;
-export const getCurrentFiber = () => currentFiber || null
+let currentFiber: FiberComponent | null = null;
+export const getCurrentFiber = () => currentFiber;
 
-let rootFiber: Fiber | null = null
-export const render = (children: SageElement<keyof SageHTML>, root: HTMLElement): void => {
-    rootFiber = new FiberHostElement(children.type, { children: [children] });
-    rootFiber.node = root;
-    Dispatcher.current = {
-        useState
-    };
-    update(rootFiber);
+export const createFiberRoot = (root: HTMLElement) => {
+    const tag = root.tagName.toLowerCase() as keyof SageHTML;
+    if (!isValidTag(tag))
+        throw new Error("Invalid root element.");
+
+    initializeDispatcher();
+    return new FiberHostElement(tag, {});
 }
 
 export const update = (fiber: Fiber) => {

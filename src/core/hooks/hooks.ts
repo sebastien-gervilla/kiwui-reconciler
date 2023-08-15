@@ -1,6 +1,8 @@
+import { Dispatcher } from 'sage';
 import { FiberComponent } from '../../classes'
 import { getCurrentFiber } from '../reconcile'
 import { Effect } from './hooks.types'
+import { useState } from './useState';
 
 // Tracking hooks
 let cursor = 0;
@@ -29,4 +31,10 @@ export const getHook = <State = Function | undefined, Dependency = any>(
         hooks.states[cursor] as [State, Dependency], 
         current
     ]
+}
+
+export const initializeDispatcher = () => {
+    Dispatcher.current = {
+        useState
+    };
 }
