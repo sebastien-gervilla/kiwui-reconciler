@@ -110,6 +110,10 @@ const getParentNode = (fiber: Fiber) => {
         parent = parent.parent;
     }
 
+    // Root doesn't have parent
+    if (fiber.type === 'Root')
+        return {} as HTMLElement;
+
     throw new Error(`
         Couldn't find parent node.
         Root element doesn't exist.
