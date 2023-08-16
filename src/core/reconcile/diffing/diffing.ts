@@ -27,7 +27,7 @@ export const diffing = (oldChildren: Fiber[], newChildren: Fiber[]) => {
         const oldChild = oldChildren[i];
         const newChild = newChildren[j];
         
-        if (oldChild === null || oldIndexTable[i] === 1) { // TODO: unsed & used enum
+        if (oldIndexTable[i] === 1) { // TODO: unsed & used enum
             i++; continue;
         }
         
@@ -72,7 +72,7 @@ export const diffing = (oldChildren: Fiber[], newChildren: Fiber[]) => {
 
 const getKey = (fiber: Fiber) => {
     if (isFiberComponent(fiber) || isFiberElement(fiber))
-        return fiber.key + fiber.tag;
+        return fiber.props.key + fiber.tag;
 
     if (isFiberText(fiber))
         return fiber.content;
