@@ -1,3 +1,4 @@
+import { EmptyHook, StoredHook } from "../../../core/hooks/hooks.types";
 import Fiber from "../Fiber";
 import { FunctionComponent, SageElement } from "sage";
 
@@ -7,11 +8,7 @@ export default class FiberComponent extends Fiber {
     public oldProps: SageElement<FunctionComponent>['props'] | null = null;
 
     public component: FunctionComponent;
-    public hooks: Hooks = {
-        states: [],
-        layouts: [],
-        effects: []
-    };
+    public hooks: (StoredHook | EmptyHook)[] = [];
 
     constructor(component: FunctionComponent, props: Object) {
         super('Component')
@@ -19,10 +16,4 @@ export default class FiberComponent extends Fiber {
         this.component = component;
         this.props = props;
     }
-}
-
-type Hooks = {
-    states: any[]
-    layouts: any[]
-    effects: any[]
 }

@@ -5,7 +5,6 @@ import { commit } from "../commit";
 import { createElement } from "../dom";
 import { schedule, shouldYield } from "../schedule";
 import { initializeDispatcher, resetCursor } from "../hooks";
-import { Effect } from "../hooks/hooks.types";
 import { diffing } from "./diffing";
 import { isValidTag, isValidText } from "../../utils/validations";
 
@@ -57,32 +56,18 @@ const capture = (fiber: Fiber): Fiber | undefined | null => {
 
 const getSibling = (fiber: Fiber) => {
     while (fiber) {
-        bubble(fiber)
         if (fiber.isDirty) {
-            fiber.isDirty = false
-            commit(fiber)
-            return null
+            fiber.isDirty = false;
+            commit(fiber);
+            return null;
         }
-        if (fiber.sibling) return fiber.sibling
-        fiber = fiber.parent as any
+        if (fiber.sibling)
+            return fiber.sibling;
+        
+        fiber = fiber.parent as any;
     }
-    return null
-}
 
-const side = (effects: Effect[]): void => {
-    effects.forEach(e => e[2] && e[2]())
-    effects.forEach(e => (e[2] = e[0]?.()))
-    effects.length = 0
-}
-// Execute hooks
-const bubble = (fiber: Fiber) => {
-    if (!isFiberComponent(fiber))
-        return;
-
-    if (fiber.hooks) {
-        side(fiber.hooks.layouts)
-        schedule(() => side(fiber.hooks.effects))
-    }
+    return null;
 }
 
 const updateComponent = (fiber: FiberComponent): any => {

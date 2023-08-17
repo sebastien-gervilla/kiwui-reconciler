@@ -22,8 +22,8 @@ export const copyFiber = (oldFiber: Fiber, newFiber: Fiber) => {
     if (isComponent && hooks)
         oldFiber.hooks = hooks
 
-    // b.ref = a.ref
-    oldFiber.node = node // tempfix ?
+    // oldFiber.ref = newFiber.ref
+    oldFiber.node = node
     oldFiber.kids = kids
 
     if (isComponent || isElement)

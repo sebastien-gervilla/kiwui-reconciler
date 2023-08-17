@@ -1,11 +1,12 @@
-import { Setter, StateGetter } from "sage";
-import { isFunction } from "../../../utils/is-type";
+import { StateGetter } from "sage";
+import { isEmptyHook, isFunction } from "../../../utils/is-type";
 import { getHook, incrementCursor } from "../hooks";
 import { update } from "../../reconcile";
+import { StoredState } from "../hooks.types";
 
-export const useState = <T>(initialState: T | (() => T)): [T, Setter<StateGetter<T>>] => {
-    const [hook, fiber] = getHook<T>(incrementCursor());
-    if (hook.length) return hook;
+export const useState = <T>(initialState: T | (() => T)): StoredState<T> => {
+    const [hook, fiber] = getHook<StoredState>(incrementCursor());
+    if (!isEmptyHook(hook)) return hook;
 
     // Initialize it if empty
     hook[0] = isFunction(initialState) 
@@ -23,5 +24,5 @@ export const useState = <T>(initialState: T | (() => T)): [T, Setter<StateGetter
         }
     }
     
-    return hook;
+    return hook as StoredState<T>;
 }

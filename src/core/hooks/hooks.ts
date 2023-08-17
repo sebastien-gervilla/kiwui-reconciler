@@ -1,36 +1,32 @@
 import { Dispatcher } from 'sage';
 import { FiberComponent } from '../../classes'
 import { getCurrentFiber } from '../reconcile'
-import { Effect } from './hooks.types'
 import { useState } from './useState';
+import { EmptyHook, StoredHook } from './hooks.types';
 
 // Tracking hooks
 let cursor = 0;
 export const resetCursor = () => cursor = 0;
 export const incrementCursor = () => cursor++;
 
-export const getHook = <State = Function | undefined, Dependency = any>(
+export const getHook = <Hook extends StoredHook>(
     cursor: number
-): [[State, Dependency], FiberComponent] => {
+): [Hook | EmptyHook, FiberComponent] => {
     const current = getCurrentFiber();
     if (!(current instanceof FiberComponent))
-        throw new Error("useState can only be used in Function Components.");
+        throw new Error("Hooks can only be used in Function Components.");
 
-    // Get hooks or initialize them
-    const hooks = current.hooks || (current.hooks = {
-        states: [],
-        effects: [],
-        layouts: []
-    });
+    const hooks = current.hooks;
 
-    // Add state arrays if not done already
-    if (cursor >= hooks.states.length)
-        hooks.states.push([] as Effect)
+    // Add hook if not in it yet
+    // TODO: Warning for conditional hooks
+    if (cursor >= hooks.length)
+        hooks.push([]);
 
     return [
-        hooks.states[cursor] as [State, Dependency], 
+        hooks[cursor] as Hook | EmptyHook,
         current
-    ]
+    ];
 }
 
 export const initializeDispatcher = () => {

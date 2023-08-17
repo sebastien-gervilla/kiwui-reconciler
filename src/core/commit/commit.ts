@@ -18,8 +18,6 @@ export const commit = (fiber: Fiber | null) => {
 
     if (op & TAG.UPDATE)
         updateFiber(fiber);
-
-    // refer(fiber.ref, fiber.node)
   
     fiber.action = null
   
@@ -28,32 +26,11 @@ export const commit = (fiber: Fiber | null) => {
 }
 
 export const removeElement = (fiber: Fiber) => {
-    if (isFiberComponent(fiber)) {
-        fiber.hooks && fiber.hooks.states.forEach(state => state[2] && state[2]())
-        fiber.kids.forEach(removeElement)
-    } else {
-        try {
-            fiber.parentNode.removeChild(fiber.node)
-        } catch (error) {
-            throw new Error(error as string)
-        }
-        // kidsRefer(fiber.kids)
-        // refer(fiber.ref, null)
-    }
-}
+    if (isFiberComponent(fiber))
+        return fiber.kids.forEach(removeElement);
 
-// const refer = (ref: IRef, dom?: HTMLElement): void => {
-//     if (ref) isFn(ref) 
-//         ? ref(dom) 
-//         : ((ref as { current?: HTMLElement })!.current = dom)
-// }
-  
-// const kidsRefer = (kids: any): void => {
-//     kids.forEach(kid => {
-//         kid.kids && kidsRefer(kid.kids)
-//         refer(kid.ref, null)
-//     })
-// }
+   fiber.parentNode.removeChild(fiber.node);
+}
 
 const insertBefore = (fiber: Fiber, element: Fiber, after: Node | null) =>
     fiber.parentNode.insertBefore(element.node, after);
