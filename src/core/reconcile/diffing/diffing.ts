@@ -3,6 +3,7 @@ import { copyFiber } from "../../../utils/copy-fiber";
 import { isFiberComponent, isFiberElement, isFiberText } from "../../../utils/is-type";
 import { removeElement } from "../../commit";
 import { Action, TAG } from "../reconcile.types";
+import { KeysTable, Usage } from "./diffing.types";
 
 export const diffing = (oldChildren: Fiber[], newChildren: Fiber[]) => {
     let actions: Action[] = [];
@@ -26,7 +27,7 @@ export const diffing = (oldChildren: Fiber[], newChildren: Fiber[]) => {
         const oldChild = oldChildren[i];
         const newChild = newChildren[j];
         
-        if (oldIndexTable[i] === 1) { // TODO: unsed & used enum
+        if (oldIndexTable[i] === Usage.USED) {
             i++; continue;
         }
         
@@ -52,7 +53,7 @@ export const diffing = (oldChildren: Fiber[], newChildren: Fiber[]) => {
 
         if (oldInNewTable === undefined) {
             removeElement(oldChildren[i])
-            oldIndexTable[i] = 1; // Mark as used
+            oldIndexTable[i] = Usage.USED;
             i++; continue;
         }
         
@@ -63,9 +64,10 @@ export const diffing = (oldChildren: Fiber[], newChildren: Fiber[]) => {
 
         newChildren[j] = copyFiber(oldChildren[newInOldTable], newChild)
         moveAction(actions, oldChildren[newInOldTable], oldChildren[i]);
-        oldIndexTable[newInOldTable] = 1;
+        oldIndexTable[newInOldTable] = Usage.USED;
         j++;
     }
+    
     return actions
 }
 
@@ -94,7 +96,3 @@ const moveAction = (actions: Action[], element?: Fiber, before?: Fiber) =>
     });
 
 const updateAction = (actions: Action[]) => actions.push({ op: TAG.UPDATE })
-
-type KeysTable = {
-    [key: string]: number
-}
