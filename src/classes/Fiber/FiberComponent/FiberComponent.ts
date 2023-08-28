@@ -1,13 +1,14 @@
+import { EmptyHook, StoredHook } from "../../../core/hooks/hooks.types";
 import Fiber from "../Fiber";
-import { FunctionComponent, Key } from "sage";
+import { FunctionComponent, SageElement } from "sage";
 
 export default class FiberComponent extends Fiber {
-    public key?: Key | null | undefined;
     public tag: string;
-    public props: Object;
+    public props: SageElement<FunctionComponent>['props'];
+    public oldProps: SageElement<FunctionComponent>['props'] | null = null;
 
     public component: FunctionComponent;
-    public hooks: any[] = [];
+    public hooks: (StoredHook | EmptyHook)[] = [];
 
     constructor(component: FunctionComponent, props: Object) {
         super('Component')
