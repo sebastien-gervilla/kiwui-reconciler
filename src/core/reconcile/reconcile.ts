@@ -1,6 +1,6 @@
-import { SageElementChildren, SageHTML } from "sage";
+import { SingleKiwuiNode, KiwuiHTML } from "kiwui";
 import { Fiber, FiberComponent, FiberHostElement, FiberHostText } from "../../classes";
-import { isComponent, isFiberComponent, isFiberElement, isFiberText, isSageElement } from "../../utils/is-type";
+import { isComponent, isFiberComponent, isFiberElement, isFiberText, isKiwuiElement } from "../../utils/is-type";
 import { commit } from "../commit";
 import { createElement } from "../dom";
 import { schedule, shouldYield } from "../schedule";
@@ -12,7 +12,7 @@ let currentFiber: FiberComponent | null = null;
 export const getCurrentFiber = () => currentFiber;
 
 export const createFiberRoot = (root: HTMLElement) => {
-    const tag = root.tagName.toLowerCase() as keyof SageHTML;
+    const tag = root.tagName.toLowerCase() as keyof KiwuiHTML;
     if (!isValidTag(tag))
         throw new Error("Invalid root element.");
 
@@ -105,10 +105,10 @@ const getParentNode = (fiber: Fiber) => {
     `);
 }
 
-const createFibersFromChildren = (children: SageElementChildren[]): Fiber[] => {
+const createFibersFromChildren = (children: SingleKiwuiNode[]): Fiber[] => {
     let fibers: Fiber[] = [];
     for (const child of children) {
-        if (!isSageElement(child)) {
+        if (!isKiwuiElement(child)) {
             if (isValidText(child))
                 fibers.push(new FiberHostText(`${child}`));
             continue;
@@ -124,7 +124,7 @@ const createFibersFromChildren = (children: SageElementChildren[]): Fiber[] => {
     return fibers;
 }
 
-const reconcileChidren = (fiber: Fiber, children: SageElementChildren[]): void => { // TODO: SageNode ?
+const reconcileChidren = (fiber: Fiber, children: SingleKiwuiNode[]): void => {
     const currentChildren = fiber.kids || [];
     const domChildren = (fiber.kids = createFibersFromChildren(children));
 

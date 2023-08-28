@@ -1,4 +1,4 @@
-import { Dispatcher } from 'sage';
+import { Dispatcher } from 'kiwui';
 import { FiberComponent } from '../../classes'
 import { getCurrentFiber } from '../reconcile'
 import { useState } from './useState';
@@ -19,7 +19,6 @@ export const getHook = <Hook extends StoredHook>(
     const hooks = current.hooks;
 
     // Add hook if not in it yet
-    // TODO: Warning for conditional hooks
     if (cursor >= hooks.length)
         hooks.push([]);
 

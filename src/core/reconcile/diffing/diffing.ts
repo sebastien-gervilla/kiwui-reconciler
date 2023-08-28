@@ -12,7 +12,6 @@ export const diffing = (oldChildren: Fiber[], newChildren: Fiber[]) => {
     let i, j;
 
     // TODO: Huge problem, if elements have no keys of same type, it won't push it
-    // Here warning, put keys when array ?
     for (i = 0; i < oldChildren.length; i++)
         oldTable[getKey(oldChildren[i])] = i;
 

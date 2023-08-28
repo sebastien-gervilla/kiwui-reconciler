@@ -1,4 +1,4 @@
-import { Setter, StateGetter } from "sage";
+import { Setter, StateGetter } from "kiwui";
 
 export type StoredHook<T = any> = StoredState<T>;
 

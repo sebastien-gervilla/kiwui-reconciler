@@ -1,9 +1,8 @@
-import { SageHTML } from "sage";
+import { KiwuiHTML } from "kiwui";
 
-// !!!!!!!!!!!!!!!!!!!!!
-// TODO: This should be relocated to dom-bindings
+// TODO: This should be relocated to dom-bindings OR dom-validator
 
-export const isValidTag = (tag: keyof SageHTML): tag is keyof SageHTML => HTMLTags.includes(tag);
+export const isValidTag = (tag: keyof KiwuiHTML): tag is keyof KiwuiHTML => HTMLTags.includes(tag);
 
 export const isValidText = (value: any): boolean => 
     typeof value === 'string' || typeof value === 'number';
@@ -12,7 +11,7 @@ export const isValidText = (value: any): boolean =>
 // Contants
 // ===============================================================
 
-const HTMLTags: (keyof SageHTML)[] = [
+const HTMLTags: (keyof KiwuiHTML)[] = [
     "a",
     "article", 
     "b",

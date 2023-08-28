@@ -1,12 +1,12 @@
-import { Key, SageElement, SageHTML } from "sage";
+import { KiwuiElement, KiwuiHTML } from "kiwui";
 import Fiber from "../Fiber";
 
 export default class FiberHostElement extends Fiber {
-    public tag: keyof SageHTML;
-    public props: SageElement<keyof SageHTML>['props'];
-    public oldProps: SageElement<keyof SageHTML>['props'] | null = null;
+    public tag: keyof KiwuiHTML;
+    public props: KiwuiElement<keyof KiwuiHTML>['props'];
+    public oldProps: KiwuiElement<keyof KiwuiHTML>['props'] | null = null;
 
-    constructor(tag: keyof SageHTML, props: SageElement<keyof SageHTML>['props']) {
+    constructor(tag: keyof KiwuiHTML, props: KiwuiElement<keyof KiwuiHTML>['props']) {
         super('DOMElement');
         this.tag = tag;
         this.props = props;

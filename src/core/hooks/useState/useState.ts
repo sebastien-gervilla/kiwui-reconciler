@@ -1,4 +1,4 @@
-import { StateGetter } from "sage";
+import { StateGetter } from "kiwui";
 import { isEmptyHook, isFunction } from "../../../utils/is-type";
 import { getHook, incrementCursor } from "../hooks";
 import { update } from "../../reconcile";

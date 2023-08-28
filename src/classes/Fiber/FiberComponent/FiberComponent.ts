@@ -1,11 +1,11 @@
 import { EmptyHook, StoredHook } from "../../../core/hooks/hooks.types";
 import Fiber from "../Fiber";
-import { FunctionComponent, SageElement } from "sage";
+import { FunctionComponent, KiwuiElement } from "kiwui";
 
 export default class FiberComponent extends Fiber {
     public tag: string;
-    public props: SageElement<FunctionComponent>['props'];
-    public oldProps: SageElement<FunctionComponent>['props'] | null = null;
+    public props: KiwuiElement<FunctionComponent>['props'];
+    public oldProps: KiwuiElement<FunctionComponent>['props'] | null = null;
 
     public component: FunctionComponent;
     public hooks: (StoredHook | EmptyHook)[] = [];

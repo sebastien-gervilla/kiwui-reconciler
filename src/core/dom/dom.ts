@@ -1,9 +1,9 @@
 import { FiberHostElement, FiberHostText } from '../../classes'
-import { CSSStyleKey, HTMLAttributes } from 'sage'
+import { CSSProperties, HTMLAttributes } from 'kiwui'
 import { isFiberText } from '../../utils/is-type'
 import { TAG } from '../reconcile/reconcile.types';
 
-// TODO: Relocation to sage-dom-bindings ?
+// TODO: Relocation to kiwui-dom-bindings ?
 
 export const createElement = (fiber: FiberHostText | FiberHostElement) => {
     if (isFiberText(fiber))
@@ -33,57 +33,59 @@ export const updateElement = (
             updateElementProps(element, key, undefined, newProps[key]);
 }
 
-const applyStyles = (element: DOM, oldStyles: CSSProps, newStyles: CSSProps) => {
-    for (const styleKey in newStyles) {
+const applyStyles = (element: DOM, oldStyles: CSSProperties, newStyles: CSSProperties) => {
+    let styleKey: keyof CSSProperties;
+
+    // Apply new properties
+    for (styleKey in newStyles)
         if (newStyles[styleKey] !== oldStyles[styleKey])
-            element.style[styleKey] = newStyles[styleKey].toString();
-    }
+            // @ts-ignore - readonly style prevents from modifying its values
+            element.style[styleKey] = newStyles[styleKey]?.toString() || '';
 
     // Reset old properties
-    for (const styleKey in oldStyles)
+    for (styleKey in oldStyles)
         if (!(styleKey in newStyles))
+            // @ts-ignore - Same as above
             element.style[styleKey] = ''
 };
 
-const updateElementProps = (dom: DOM, name: keyof HTMLAttributes, oldProp: HTMLAttributesValue, newProp: HTMLAttributesValue) => {
+const updateElementProps = (element: DOM, name: keyof HTMLAttributes, oldProp: HTMLAttributesValue, newProp: HTMLAttributesValue) => {
     if (oldProp === newProp || name === 'children')
         return;
 
     if (isStyleProps(name, newProp))
-        return applyStyles(dom, newProp, oldProp as CSSProps);
+        return applyStyles(element, newProp, oldProp as CSSProperties);
 
     if (isEvent(name, newProp)) {
         // TODO: Support more listeners
         const type = name.slice(2).toLowerCase();
-        if (oldProp) dom.removeEventListener(type, oldProp as DOMEvent);
-        return dom.addEventListener(type, newProp);
+        if (oldProp) element.removeEventListener(type, oldProp as EventListener);
+        return element.addEventListener(type, newProp);
     }
     
-    if (name in dom && !(dom instanceof SVGElement)) {
+    if (name in element && !(element instanceof SVGElement)) {
         // @ts-ignore - This ignores "style" readonly error
-        dom[name] = newProp || '';
+        element[name] = newProp || '';
         return;
     }
     
     if (newProp === null || newProp === false)
-        return dom.removeAttribute(name);
+        return element.removeAttribute(name);
 
-    dom.setAttribute(name, newProp as string);
+    element.setAttribute(name, newProp as string);
 }
 
 // Checkers
 const isKeyInProps = (key: string, props: HTMLAttributes): key is keyof HTMLAttributes => props.hasOwnProperty(key);
 
-const isEvent = (name: keyof HTMLAttributes, value: HTMLAttributesValue): value is DOMEvent =>
+const isEvent = (name: keyof HTMLAttributes, value: HTMLAttributesValue): value is EventListener =>
     (name[0] === 'o' && name[1] === 'n') && typeof value === 'function'
 
-const isStyleProps = (name: keyof HTMLAttributes, value: HTMLAttributesValue): value is CSSProps => 
+const isStyleProps = (name: keyof HTMLAttributes, value: HTMLAttributesValue): value is CSSProperties => 
     name === 'style' && typeof value === 'object';
 
 // Simplified types
 type DOM = HTMLElement | SVGElement
 type HTMLAttributesValue = HTMLAttributes[keyof HTMLAttributes];
-type CSSProps = Record<CSSStyleKey, string | number>;
-type DOMEvent = EventListenerOrEventListenerObject;
 
 const SVG_URL = 'http://www.w3.org/2000/svg';
