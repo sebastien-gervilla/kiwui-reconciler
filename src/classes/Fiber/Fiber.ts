@@ -1,4 +1,4 @@
-import { KiwuiElementChildren } from "kiwui";
+import { SingleKiwuiNode } from "kiwui";
 import { FiberType } from "../../types"
 import { Action } from "../../core/reconcile/reconcile.types";
 
@@ -9,7 +9,7 @@ export default class Fiber {
 
     public node!: HTMLElement;
     public parentNode!: HTMLElement;
-    public wipNode: KiwuiElementChildren[] = [];
+    public wipNode: SingleKiwuiNode[] = [];
     public kids: Fiber[] = [];
 
     public action: Action | null = null;
