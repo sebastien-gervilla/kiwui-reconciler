@@ -1,24 +1,45 @@
 {
-  "name": "sage-reconciler",
-  "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/sebastien-gervilla/sage-reconciler.git"
-  },
-  "keywords": [],
-  "author": "",
+  "name": "kiwui-reconciler",
+  "version": "0.1.0",
+  "description": "Kiwui's reconciler",
+  "author": "Sébastien Gervilla (sebastien-gervilla)",
   "license": "ISC",
-  "bugs": {
-    "url": "https://github.com/sebastien-gervilla/sage-reconciler/issues"
+  "keywords": [
+    "kiwui",
+    "javascript",
+    "typescript"
+  ],
+
+  "type": "module",
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+
+  "scripts": {
+    "build": "tsc",
+    "reset:kiwui": "rmdir /s /q node_modules\\kiwui && npm i"
   },
-  "homepage": "https://github.com/sebastien-gervilla/sage-reconciler#readme",
+
   "devDependencies": {
     "@types/node": "^20.4.5",
     "typescript": "^5.1.6"
+  },
+  "dependencies": {
+    "kiwui": "file:../kiwui",
+    "tslib": "^2.6.1"
+  },
+
+  "homepage": "https://github.com/sebastien-gervilla/kiwui-reconciler#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sebastien-gervilla/kiwui-reconciler.git"
+  },
+  "bugs": {
+    "url": "https://github.com/sebastien-gervilla/kiwui-reconciler/issues"
   }
 }
