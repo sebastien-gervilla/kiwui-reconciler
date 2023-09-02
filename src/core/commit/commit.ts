@@ -48,7 +48,7 @@ const insertFiber = (fiber: Fiber, element: Fiber, before: Fiber | undefined) =>
         insertBefore(fiber, element, null)
     else {
         let beforeNode: HTMLElement | null = before.node;
-        if (before instanceof FiberComponent)
+        if (isFiberComponent(before))
             beforeNode = getBeforeNode(before)
 
         insertBefore(fiber, element, beforeNode)
