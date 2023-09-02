@@ -1,13 +1,17 @@
 import { SingleKiwuiNode } from "kiwui";
 import { FiberType } from "../../types"
 import { Action } from "../../core/reconcile/reconcile.types";
+import { FiberComponent } from "./FiberComponent";
+import { FiberHostElement } from "./FiberHostElement";
 
 export default class Fiber {
-    public parent: Fiber | null = null;
+    public parent: FiberComponent | FiberHostElement | null = null;
     public child: Fiber | null = null;
     public sibling: Fiber | null = null;
 
-    public node!: HTMLElement;
+    // Makes reconciliation easier
+    public node: any;
+
     public parentNode!: HTMLElement;
     public wipNode: SingleKiwuiNode[] = [];
     public kids: Fiber[] = [];
