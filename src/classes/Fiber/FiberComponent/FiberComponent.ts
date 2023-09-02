@@ -1,4 +1,4 @@
-import { EmptyHook, StoredHook } from "../../../core/hooks/hooks.types";
+import { EmptyHook, StoredEffect, StoredHook } from "../../../core/hooks/hooks.types";
 import Fiber from "../Fiber";
 import { FunctionComponent, KiwuiElement } from "kiwui";
 
@@ -9,6 +9,8 @@ export default class FiberComponent extends Fiber {
 
     public component: FunctionComponent;
     public hooks: (StoredHook | EmptyHook)[] = [];
+    public effects: StoredEffect[] = [];
+    public layouts: StoredEffect[] = [];
 
     constructor(component: FunctionComponent, props: Object) {
         super('Component')

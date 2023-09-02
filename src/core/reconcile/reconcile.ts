@@ -7,6 +7,7 @@ import { schedule, shouldYield } from "../schedule";
 import { initializeDispatcher, resetCursor } from "../hooks";
 import { diffing } from "./diffing";
 import { isValidTag, isValidText } from "../../utils/validations";
+import { StoredEffect } from "../hooks/hooks.types";
 
 let currentFiber: FiberComponent | null = null;
 export const getCurrentFiber = () => currentFiber;
@@ -56,11 +57,15 @@ const capture = (fiber: Fiber): Fiber | undefined | null => {
 
 const getSibling = (fiber: Fiber) => {
     while (fiber) {
+        if (isFiberComponent(fiber))
+            bubble(fiber)
+
         if (fiber.isDirty) {
             fiber.isDirty = false;
             commit(fiber);
             return null;
         }
+
         if (fiber.sibling)
             return fiber.sibling;
         
@@ -75,6 +80,24 @@ const updateComponent = (fiber: FiberComponent): any => {
     currentFiber = fiber;
     const children = fiber.component(fiber.props);
     reconcileChidren(fiber, children ? [children] : []);
+}
+
+const bubble = (fiber: FiberComponent) => {
+    if (fiber.layouts.length)
+        side(fiber.layouts);
+
+    if (fiber.effects.length)
+        schedule(() => side(fiber.effects));
+}
+
+const side = (effects: StoredEffect[]) => {
+    for (const effect of effects)
+        effect[2] && effect[2]();
+
+    for (const effect of effects)
+        effect[2] = effect[0]() || undefined;
+
+    effects.length = 0;
 }
 
 const updateHost = (fiber: FiberHostElement | FiberHostText): void => {
