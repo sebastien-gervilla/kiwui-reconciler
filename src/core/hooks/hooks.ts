@@ -1,7 +1,8 @@
-import { Dispatcher } from 'kiwui';
+import { Dependencies, Dispatcher } from 'kiwui';
 import { FiberComponent } from '../../classes'
 import { getCurrentFiber } from '../reconcile'
 import { useState } from './useState';
+import { useEffect, useLayoutEffect } from './useEffect';
 import { EmptyHook, StoredHook } from './hooks.types';
 
 // Tracking hooks
@@ -28,8 +29,16 @@ export const getHook = <Hook extends StoredHook>(
     ];
 }
 
+export const hasDepsChanged = (oldDeps: Dependencies, newDeps: Dependencies) => {
+    return !oldDeps 
+        || oldDeps.length !== newDeps.length 
+        || newDeps.some((dep, index) => !Object.is(dep, oldDeps[index]))
+}
+
 export const initializeDispatcher = () => {
     Dispatcher.current = {
-        useState
+        useState,
+        useEffect,
+        useLayoutEffect
     };
 }
