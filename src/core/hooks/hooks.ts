@@ -4,6 +4,7 @@ import { getCurrentFiber } from '../reconcile'
 import { useState } from './useState';
 import { useEffect, useLayoutEffect } from './useEffect';
 import { EmptyHook, StoredHook } from './hooks.types';
+import { isFiberComponent } from '../../utils/is-type';
 
 // Tracking hooks
 let cursor = 0;
@@ -14,7 +15,7 @@ export const getHook = <Hook extends StoredHook>(
     cursor: number
 ): [Hook | EmptyHook, FiberComponent] => {
     const current = getCurrentFiber();
-    if (!(current instanceof FiberComponent))
+    if (!current || !isFiberComponent(current))
         throw new Error("Hooks can only be used in Function Components.");
 
     const hooks = current.hooks;
