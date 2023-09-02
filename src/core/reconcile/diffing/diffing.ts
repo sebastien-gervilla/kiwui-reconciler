@@ -32,12 +32,12 @@ export const diffing = (oldChildren: Fiber[], newChildren: Fiber[]) => {
         }
         
         if (newChildren.length <= j) {
-            removeElement(oldChildren[i])
+            removeElement(oldChildren[i]);
             i++; continue;
         }
         
         if (oldChildren.length <= i) {
-            insertAction(actions, newChild, oldChildren[i]);
+            insertAction(actions, newChild);
             j++; continue;
         }
         
@@ -62,13 +62,13 @@ export const diffing = (oldChildren: Fiber[], newChildren: Fiber[]) => {
             j++; continue;
         }
 
-        newChildren[j] = copyFiber(oldChildren[newInOldTable], newChild)
+        newChildren[j] = copyFiber(oldChildren[newInOldTable], newChild);
         moveAction(actions, oldChildren[newInOldTable], oldChildren[i]);
         oldIndexTable[newInOldTable] = Usage.USED;
         j++;
     }
     
-    return actions
+    return actions;
 }
 
 const getKey = (fiber: Fiber) => {

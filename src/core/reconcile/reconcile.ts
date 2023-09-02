@@ -2,7 +2,7 @@ import { SingleKiwuiNode, KiwuiHTML } from "kiwui";
 import { Fiber, FiberComponent, FiberHostElement, FiberHostText } from "../../classes";
 import { isComponent, isFiberComponent, isFiberElement, isFiberText, isKiwuiElement } from "../../utils/is-type";
 import { commit } from "../commit";
-import { createElement } from "../dom";
+import { createElement, createText } from "../dom";
 import { schedule, shouldYield } from "../schedule";
 import { initializeDispatcher, resetCursor } from "../hooks";
 import { diffing } from "./diffing";
@@ -48,8 +48,11 @@ const capture = (fiber: Fiber): Fiber | undefined | null => {
         updateComponent(fiber);
     }
 
-    if (isFiberElement(fiber) || isFiberText(fiber))
+    if (isFiberElement(fiber))
         updateHost(fiber);
+
+    if (isFiberText(fiber))
+        updateText(fiber);
 
     return fiber.child 
         ? fiber.child 
@@ -101,20 +104,26 @@ const side = (effects: StoredEffect[]) => {
     effects.length = 0;
 }
 
-const updateHost = (fiber: FiberHostElement | FiberHostText): void => {
+const updateHost = (fiber: FiberHostElement) => {
     fiber.parentNode = getParentNode(fiber);
     if (!fiber.node) {
         if (fiber.tag === 'svg') fiber.lane |= TAG.SVG;
         fiber.node = createElement(fiber) as HTMLElement;
     }
-    reconcileChidren(fiber, isFiberElement(fiber) ? fiber.props.children || [] : []); // TODO: Don't reconcile text
+    reconcileChidren(fiber, fiber.props.children || []);
+}
+
+const updateText = (fiber: FiberHostText) => {
+    fiber.parentNode = getParentNode(fiber);
+    if (!fiber.node)
+        fiber.node = createText(fiber);
 }
 
 const getParentNode = (fiber: Fiber) => {
-    let parent = fiber.parent
+    let parent = fiber.parent;
     while (parent) {
         if (!isFiberComponent(parent)) 
-            return parent.node
+            return parent.node;
 
         parent = parent.parent;
     }
