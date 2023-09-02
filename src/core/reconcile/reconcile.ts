@@ -8,6 +8,7 @@ import { initializeDispatcher, resetCursor } from "../hooks";
 import { diffing } from "./diffing";
 import { isValidTag, isValidText } from "../../utils/validations";
 import { StoredEffect } from "../hooks/hooks.types";
+import { TAG } from "./reconcile.types";
 
 let currentFiber: FiberComponent | null = null;
 export const getCurrentFiber = () => currentFiber;
@@ -103,7 +104,7 @@ const side = (effects: StoredEffect[]) => {
 const updateHost = (fiber: FiberHostElement | FiberHostText): void => {
     fiber.parentNode = getParentNode(fiber);
     if (!fiber.node) {
-        // if (fiber.type === 'svg') fiber.lane |= TAG.SVG
+        if (fiber.tag === 'svg') fiber.lane |= TAG.SVG;
         fiber.node = createElement(fiber) as HTMLElement;
     }
     reconcileChidren(fiber, isFiberElement(fiber) ? fiber.props.children || [] : []); // TODO: Don't reconcile text
@@ -147,25 +148,26 @@ const createFibersFromChildren = (children: SingleKiwuiNode[]): Fiber[] => {
     return fibers;
 }
 
-const reconcileChidren = (fiber: Fiber, children: SingleKiwuiNode[]): void => {
+const reconcileChidren = (fiber: FiberComponent | FiberHostElement, children: SingleKiwuiNode[]): void => {
     const currentChildren = fiber.kids || [];
     const domChildren = (fiber.kids = createFibersFromChildren(children));
 
-    const actions = diffing(currentChildren, domChildren)
+    const actions = diffing(currentChildren, domChildren);
   
     let previous = null;
     for (let i = 0; i < domChildren.length; i++) {
-        const child = domChildren[i]
-        child.action = actions[i]
-        // if (fiber.lane & TAG.SVG) {
-        //     child.lane |= TAG.SVG
-        // }
-        child.parent = fiber
-        if (i > 0 && previous)
-            previous.sibling = child
-        else
-            fiber.child = child
+        const child = domChildren[i];
+        child.action = actions[i];
 
-        previous = child
+        if (fiber.lane & TAG.SVG)
+            child.lane |= TAG.SVG;
+
+        child.parent = fiber;
+        if (i > 0 && previous)
+            previous.sibling = child;
+        else
+            fiber.child = child;
+
+        previous = child;
     }
 }
