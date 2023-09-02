@@ -1,3 +1,4 @@
 export {
-    type FiberType
+    type FiberType,
+    type FiberHost
 } from './fiber';
