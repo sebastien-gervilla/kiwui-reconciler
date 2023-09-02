@@ -1,14 +1,10 @@
 import { FiberHostElement, FiberHostText } from '../../classes'
 import { CSSProperties, HTMLAttributes } from 'kiwui'
-import { isFiberText } from '../../utils/is-type'
 import { TAG } from '../reconcile/reconcile.types';
 
 // TODO: Relocation to kiwui-dom-bindings ?
 
-export const createElement = (fiber: FiberHostText | FiberHostElement) => {
-    if (isFiberText(fiber))
-        return document.createTextNode(fiber.content);
-
+export const createElement = (fiber: FiberHostElement) => {
     const element = fiber.lane & TAG.SVG
         ? document.createElementNS(SVG_URL, fiber.tag)
         : document.createElement(fiber.tag);
@@ -18,16 +14,20 @@ export const createElement = (fiber: FiberHostText | FiberHostElement) => {
     return element;
 }
 
+export const createText = (fiber: FiberHostText) =>
+    document.createTextNode(fiber.content);
+
 export const updateElement = (
     element: DOM,
     oldProps: HTMLAttributes,
     newProps: HTMLAttributes
 ) => {
+    // Updating old properties
     for (const key in oldProps)
         if (isKeyInProps(key, oldProps))
             updateElementProps(element, key, oldProps[key], newProps[key]);
 
-    // To fill keys not in oldKeys
+    // Adding new properties
     for (const key in newProps)
         if (isKeyInProps(key, newProps) && !oldProps.hasOwnProperty(key))
             updateElementProps(element, key, undefined, newProps[key]);
