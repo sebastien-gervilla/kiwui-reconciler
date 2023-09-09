@@ -5,6 +5,7 @@ import { useState } from './useState';
 import { useEffect, useLayoutEffect } from './useEffect';
 import { useMemo } from './useMemo';
 import { useCallback } from './useCallback';
+import { useRef } from './useRef';
 import { EmptyHook, StoredHook } from './hooks.types';
 import { isFiberComponent } from '../../utils/is-type';
 
@@ -44,6 +45,7 @@ export const initializeDispatcher = () => {
         useEffect,
         useLayoutEffect,
         useMemo,
-        useCallback
+        useCallback,
+        useRef
     };
 }
