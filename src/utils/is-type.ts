@@ -20,6 +20,8 @@ export const isKiwuiElement = (value: SingleKiwuiNode): value is KiwuiElement =>
 export const isFiberComponent = (value: Fiber): value is FiberComponent => value instanceof FiberComponent;
 export const isFiberElement = (value: Fiber): value is FiberHostElement => value instanceof FiberHostElement;
 export const isFiberText = (value: Fiber): value is FiberHostText => value instanceof FiberHostText;
+export const isFiberHost = (value: Fiber): value is (FiberHostText | FiberHostElement) =>
+    value instanceof FiberHostElement || value instanceof FiberHostText;
 
 // Hook
 

@@ -4,7 +4,7 @@ import { KiwuiHTML } from "kiwui";
 
 export const isValidTag = (tag: keyof KiwuiHTML): tag is keyof KiwuiHTML => HTMLTags.includes(tag);
 
-export const isValidText = (value: any): boolean => 
+export const isValidText = (value: any): value is string | number => 
     typeof value === 'string' || typeof value === 'number';
 
 //
