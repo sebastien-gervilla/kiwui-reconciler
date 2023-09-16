@@ -1,6 +1,6 @@
-import { SingleKiwuiNode, KiwuiHTML } from "kiwui";
+import { SingleKiwuiNode, KiwuiHTML, MemoComponent } from "kiwui";
 import { Fiber, FiberComponent, FiberHostElement, FiberHostText } from "../../classes";
-import { isComponent, isFiberComponent, isFiberElement, isFiberText, isKiwuiElement } from "../../utils/is-type";
+import { isComponent, isFiberComponent, isFiberElement, isFiberMemo, isFiberText, isKiwuiElement } from "../../utils/is-type";
 import { commit } from "../commit";
 import { createElement, createText } from "../dom";
 import { schedule, shouldYield } from "../schedule";
@@ -41,17 +41,16 @@ const reconcile = (fiber?: Fiber): Function | null => {
 // Tag all fibers for updates
 const capture = (fiber: Fiber): Fiber | undefined | null => {
     if (isFiberComponent(fiber)) {
-        // const memoFiber = memo(fiber)
-        // if (memoFiber) {
-        //     return memoFiber
-        // }
+        if (!shouldUpdateComponent(fiber))
+            return getSibling(fiber);
+
         updateComponent(fiber);
     }
 
-    if (isFiberElement(fiber))
+    else if (isFiberElement(fiber))
         updateHost(fiber);
 
-    if (isFiberText(fiber))
+    else if (isFiberText(fiber))
         updateText(fiber);
 
     return fiber.child 
@@ -84,6 +83,24 @@ const updateComponent = (fiber: FiberComponent): any => {
     currentFiber = fiber;
     const children = fiber.component(fiber.props);
     reconcileChidren(fiber, children ? [children] : []);
+}
+
+const shouldUpdateComponent = (fiber: FiberComponent) => {
+    if (!isFiberMemo(fiber) || !fiber.oldProps)
+        return true;
+
+    const shouldUpdate = fiber.component.shouldUpdate || defaultShouldUpdate;
+    return shouldUpdate(fiber.props, fiber.oldProps);
+}
+
+const defaultShouldUpdate = <Props extends {}>(newProps: Props, oldProps: Props) => {
+    for (let prop in newProps)
+        if (!(prop in oldProps)) return true;
+
+    for (let prop in oldProps)
+        if (newProps[prop] !== oldProps[prop]) return true;
+    
+    return false;
 }
 
 const bubble = (fiber: FiberComponent) => {
