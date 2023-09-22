@@ -1,4 +1,4 @@
-import { SingleKiwuiNode, KiwuiHTML, MemoComponent } from "kiwui";
+import { SingleKiwuiNode, KiwuiHTML, MemoComponent, KiwuiNode } from "kiwui";
 import { Fiber, FiberComponent, FiberHostElement, FiberHostText } from "../../classes";
 import { isComponent, isFiberComponent, isFiberElement, isFiberMemo, isFiberText, isKiwuiElement } from "../../utils/is-type";
 import { commit } from "../commit";
@@ -9,6 +9,7 @@ import { diffing } from "./diffing";
 import { isValidTag, isValidText } from "../../utils/validations";
 import { StoredEffect } from "../hooks/hooks.types";
 import { TAG } from "./reconcile.types";
+import { flattenNode } from "../../utils/flatten-node";
 
 let currentFiber: FiberComponent | null = null;
 export const getCurrentFiber = () => currentFiber;
@@ -78,11 +79,17 @@ const getSibling = (fiber: Fiber) => {
     return null;
 }
 
+const childrenToArray = (children: KiwuiNode): SingleKiwuiNode[] => {
+    return Array.isArray(children)
+        ? flattenNode(children)
+        : [children];
+}
+
 const updateComponent = (fiber: FiberComponent): any => {
     resetCursor();
     currentFiber = fiber;
     const children = fiber.component(fiber.props);
-    reconcileChidren(fiber, children ? [children] : []);
+    reconcileChidren(fiber, childrenToArray(children));
 }
 
 const shouldUpdateComponent = (fiber: FiberComponent) => {
@@ -127,7 +134,7 @@ const updateHost = (fiber: FiberHostElement) => {
         if (fiber.tag === 'svg') fiber.lane |= TAG.SVG;
         fiber.node = createElement(fiber) as HTMLElement;
     }
-    reconcileChidren(fiber, fiber.props.children || []);
+    reconcileChidren(fiber, childrenToArray(fiber.props.children));
 }
 
 const updateText = (fiber: FiberHostText) => {
