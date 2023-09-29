@@ -14,6 +14,9 @@ import { flattenNode } from "../../utils/flatten-node";
 let currentFiber: FiberComponent | null = null;
 export const getCurrentFiber = () => currentFiber;
 
+// TODO: This system could be removed, see "ideas"
+let currentUpdatedFiber: Fiber | null = null;
+
 export const createFiberRoot = (root: HTMLElement) => {
     const tag = root.tagName.toLowerCase() as keyof KiwuiHTML;
     if (!isValidTag(tag))
@@ -26,7 +29,10 @@ export const createFiberRoot = (root: HTMLElement) => {
 export const update = (fiber: Fiber) => {
     if (!fiber.isDirty) {
         fiber.isDirty = true;
-        schedule(() => reconcile(fiber));
+        schedule(() => {
+            currentUpdatedFiber = fiber;
+            return reconcile(fiber);
+        });
     }
 }
 
@@ -64,7 +70,8 @@ const getSibling = (fiber: Fiber) => {
         if (isFiberComponent(fiber))
             bubble(fiber)
 
-        if (fiber.isDirty) {
+        if (fiber === currentUpdatedFiber) {
+            currentUpdatedFiber = null;
             fiber.isDirty = false;
             commit(fiber);
             return null;
