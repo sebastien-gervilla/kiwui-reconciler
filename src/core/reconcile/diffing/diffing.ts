@@ -45,7 +45,7 @@ export const diffing = (oldChildren: Fiber[], newChildren: Fiber[]) => {
         const newIndex = newTable.indexOf(newKey);
         const oldIndex = newTable.indexOf(newKey);
         if (oldKey === newKey && newIndex !== -1 && oldIndex !== -1) {
-            copyFiber(oldChild, newChild);
+            newChildren[j] = copyFiber(oldChild, newChild);
             updateAction(actions);
             newTable[newIndex] = null;
             oldTable[oldIndex] = null;
@@ -66,7 +66,7 @@ export const diffing = (oldChildren: Fiber[], newChildren: Fiber[]) => {
             j++; continue;
         }
 
-        copyFiber(oldChildren[newInOldTable], newChild);
+        newChildren[j] = copyFiber(oldChildren[newInOldTable], newChild);
         moveAction(actions, oldChildren[newInOldTable], oldChildren[i]);
         oldIndexTable[newInOldTable] = Usage.USED;
 
