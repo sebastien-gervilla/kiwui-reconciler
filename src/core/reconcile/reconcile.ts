@@ -10,6 +10,7 @@ import { isValidTag, isValidText } from "../../utils/validations";
 import { StoredEffect } from "../hooks/hooks.types";
 import { TAG } from "./reconcile.types";
 import { flattenNode } from "../../utils/flatten-node";
+import { createFiber } from "./createFiber";
 
 let currentFiber: FiberComponent | null = null;
 export const getCurrentFiber = () => currentFiber;
@@ -46,7 +47,7 @@ const reconcile = (fiber?: Fiber): Function | null => {
 }
 
 // Tag all fibers for updates
-const capture = (fiber: Fiber): Fiber | undefined | null => {
+const capture = (fiber: Fiber) => {
     if (isFiberComponent(fiber)) {
         if (!shouldUpdateComponent(fiber))
             return getSibling(fiber);
@@ -171,19 +172,10 @@ const getParentNode = (fiber: Fiber) => {
 
 const createFibersFromChildren = (children: SingleKiwuiNode[]): Fiber[] => {
     let fibers: Fiber[] = [];
-    for (const child of children) {
-        if (!isKiwuiElement(child)) {
-            if (isValidText(child))
-                fibers.push(new FiberHostText(`${child}`));
-            continue;
-        }
-
-        fibers.push(
-            isComponent(child)
-                ? new FiberComponent(child.type, child.props)
-                : new FiberHostElement(child.type, child.props)
-        );
-    }
+    let fiber: Fiber | null;
+    for (const child of children)
+        if (fiber = createFiber(child))
+            fibers.push(fiber);
     
     return fibers;
 }
