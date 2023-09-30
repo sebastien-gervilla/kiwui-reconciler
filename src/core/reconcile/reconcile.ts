@@ -1,4 +1,4 @@
-import { SingleKiwuiNode, KiwuiHTML, MemoComponent } from "kiwui";
+import { SingleKiwuiNode, KiwuiHTML, MemoComponent, KiwuiNode } from "kiwui";
 import { Fiber, FiberComponent, FiberHostElement, FiberHostText } from "../../classes";
 import { isComponent, isFiberComponent, isFiberElement, isFiberMemo, isFiberText, isKiwuiElement } from "../../utils/is-type";
 import { commit } from "../commit";
@@ -9,9 +9,14 @@ import { diffing } from "./diffing";
 import { isValidTag, isValidText } from "../../utils/validations";
 import { StoredEffect } from "../hooks/hooks.types";
 import { TAG } from "./reconcile.types";
+import { flattenNode } from "../../utils/flatten-node";
+import { createFiber } from "./createFiber";
 
 let currentFiber: FiberComponent | null = null;
 export const getCurrentFiber = () => currentFiber;
+
+// TODO: This system could be removed, see "ideas"
+let currentUpdatedFiber: Fiber | null = null;
 
 export const createFiberRoot = (root: HTMLElement) => {
     const tag = root.tagName.toLowerCase() as keyof KiwuiHTML;
@@ -25,7 +30,10 @@ export const createFiberRoot = (root: HTMLElement) => {
 export const update = (fiber: Fiber) => {
     if (!fiber.isDirty) {
         fiber.isDirty = true;
-        schedule(() => reconcile(fiber));
+        schedule(() => {
+            currentUpdatedFiber = fiber;
+            return reconcile(fiber);
+        });
     }
 }
 
@@ -39,7 +47,7 @@ const reconcile = (fiber?: Fiber): Function | null => {
 }
 
 // Tag all fibers for updates
-const capture = (fiber: Fiber): Fiber | undefined | null => {
+const capture = (fiber: Fiber) => {
     if (isFiberComponent(fiber)) {
         if (!shouldUpdateComponent(fiber))
             return getSibling(fiber);
@@ -63,7 +71,8 @@ const getSibling = (fiber: Fiber) => {
         if (isFiberComponent(fiber))
             bubble(fiber)
 
-        if (fiber.isDirty) {
+        if (fiber === currentUpdatedFiber) {
+            currentUpdatedFiber = null;
             fiber.isDirty = false;
             commit(fiber);
             return null;
@@ -78,11 +87,17 @@ const getSibling = (fiber: Fiber) => {
     return null;
 }
 
+const childrenToArray = (children: KiwuiNode): SingleKiwuiNode[] => {
+    return Array.isArray(children)
+        ? flattenNode(children)
+        : [children];
+}
+
 const updateComponent = (fiber: FiberComponent): any => {
     resetCursor();
     currentFiber = fiber;
     const children = fiber.component(fiber.props);
-    reconcileChidren(fiber, children ? [children] : []);
+    reconcileChidren(fiber, childrenToArray(children));
 }
 
 const shouldUpdateComponent = (fiber: FiberComponent) => {
@@ -127,7 +142,7 @@ const updateHost = (fiber: FiberHostElement) => {
         if (fiber.tag === 'svg') fiber.lane |= TAG.SVG;
         fiber.node = createElement(fiber) as HTMLElement;
     }
-    reconcileChidren(fiber, fiber.props.children || []);
+    reconcileChidren(fiber, childrenToArray(fiber.props.children));
 }
 
 const updateText = (fiber: FiberHostText) => {
@@ -157,19 +172,10 @@ const getParentNode = (fiber: Fiber) => {
 
 const createFibersFromChildren = (children: SingleKiwuiNode[]): Fiber[] => {
     let fibers: Fiber[] = [];
-    for (const child of children) {
-        if (!isKiwuiElement(child)) {
-            if (isValidText(child))
-                fibers.push(new FiberHostText(`${child}`));
-            continue;
-        }
-
-        fibers.push(
-            isComponent(child)
-                ? new FiberComponent(child.type, child.props)
-                : new FiberHostElement(child.type, child.props)
-        );
-    }
+    let fiber: Fiber | null;
+    for (const child of children)
+        if (fiber = createFiber(child))
+            fibers.push(fiber);
     
     return fibers;
 }

@@ -58,17 +58,33 @@ const insertFiberHost = (fiber: FiberHost, element: FiberHost, before: Fiber | u
 }
 
 const insertComponent = (fiber: FiberComponent) => {
-    if (!fiber.child) return;
+    if (!fiber.child || !fiber.action || !fiber.child.action) // TODO: Clean
+        return;
 
-    if (fiber.action && fiber.child.action) {
-        fiber.child.action.op |= fiber.action.op
-        fiber.child.action.before = fiber.action.before // TODO: Fragments support
+    fiber.child.action.op |= fiber.action.op
+    fiber.child.action.before = fiber.action.before
+
+    let sibling = fiber.child.sibling;
+    while (sibling) {
+        if (sibling.action) {
+            sibling.action.op |= fiber.action.op;
+            sibling.action.before = fiber.action.before;
+        }
+        sibling = sibling.sibling;
     }
 }
 
 const updateComponent = (fiber: FiberComponent) => {
-    if (fiber.action && fiber.child?.action)
-        fiber.child.action.op |= fiber.action.op
+    if (!fiber.action || !fiber.child?.action)
+        return;
+    
+    fiber.child.action.op |= fiber.action.op;
+    let sibling = fiber.child.sibling;
+    while (sibling) {
+        if (sibling.action)
+            sibling.action.op |= fiber.action.op;
+        sibling = sibling.sibling;
+    }
 }
 
 const updateHostElement = (fiber: FiberHostElement) => {
