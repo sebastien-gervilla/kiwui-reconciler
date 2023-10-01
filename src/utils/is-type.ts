@@ -1,4 +1,4 @@
-import { FunctionComponent, KiwuiElement, SingleKiwuiNode, KiwuiHTML } from "kiwui";
+import { FunctionComponent, KiwuiElement, SingleKiwuiNode, KiwuiHTML, MemoComponent } from "kiwui";
 import { Fiber, FiberComponent, FiberHostElement, FiberHostText } from "../classes";
 import { isValidTag } from "./validations";
 import { EmptyHook, StoredHook } from "../core/hooks/hooks.types";
@@ -22,6 +22,11 @@ export const isFiberElement = (value: Fiber): value is FiberHostElement => value
 export const isFiberText = (value: Fiber): value is FiberHostText => value instanceof FiberHostText;
 export const isFiberHost = (value: Fiber): value is (FiberHostText | FiberHostElement) =>
     value instanceof FiberHostElement || value instanceof FiberHostText;
+
+// TODO: FiberExotic map ?
+export const isFiberMemo = (fiber: FiberComponent<any>): 
+    fiber is FiberComponent<MemoComponent> => 
+        fiber.component.exoticTag === 'Memo';
 
 // Hook
 

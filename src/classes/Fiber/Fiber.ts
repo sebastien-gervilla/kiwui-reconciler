@@ -13,12 +13,10 @@ export default class Fiber {
     public node: any;
 
     public parentNode!: HTMLElement;
-    public wipNode: SingleKiwuiNode[] = [];
     public kids: Fiber[] = [];
 
     public action: Action | null = null;
 
-    public children: Fiber[] = [];
     public isDirty: boolean = false;
     public lane!: number; // TODO: Can it be null ?
 
