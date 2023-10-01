@@ -1,12 +1,12 @@
-import { Dependencies, Effect } from "kiwui"
+import { Dependencies, Effect, Hooks } from "kiwui"
 import { getHook, hasDepsChanged, incrementCursor } from "../hooks"
 import { StoredEffect } from "../hooks.types"
 
-export const useEffect = (effect: Effect, dependencies?: Dependencies): void => {
+export const useEffect: Hooks['useEffect'] = (effect: Effect, dependencies?: Dependencies) => {
     return effectImplementation(effect, dependencies!, "effects")
 }
   
-export const useLayoutEffect = (effect: Effect, dependencies?: Dependencies): void => {
+export const useLayoutEffect: Hooks['useLayoutEffect'] = (effect: Effect, dependencies?: Dependencies) => {
     return effectImplementation(effect, dependencies!, "layouts")
 }
   

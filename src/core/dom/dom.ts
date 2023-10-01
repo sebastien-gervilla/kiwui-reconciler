@@ -19,8 +19,8 @@ export const createText = (fiber: FiberHostText) =>
 
 export const updateElement = (
     element: DOM,
-    oldProps: HTMLAttributes,
-    newProps: HTMLAttributes
+    oldProps: ElementAttributes,
+    newProps: ElementAttributes
 ) => {
     // Updating old properties
     for (const key in oldProps)
@@ -49,8 +49,8 @@ const applyStyles = (element: DOM, oldStyles: CSSProperties, newStyles: CSSPrope
             element.style[styleKey] = ''
 };
 
-const updateElementProps = (element: DOM, name: keyof HTMLAttributes, oldProp: HTMLAttributesValue, newProp: HTMLAttributesValue) => {
-    if (oldProp === newProp || name === 'children')
+const updateElementProps = <T extends ElementAttributesValue>(element: DOM, name: ElementAttributesKeys, oldProp: T, newProp: T) => {
+    if (oldProp === newProp || name === 'children' || name === 'ref')
         return;
 
     if (isStyleProps(name, newProp))
@@ -76,16 +76,18 @@ const updateElementProps = (element: DOM, name: keyof HTMLAttributes, oldProp: H
 }
 
 // Checkers
-const isKeyInProps = (key: string, props: HTMLAttributes): key is keyof HTMLAttributes => props.hasOwnProperty(key);
+const isKeyInProps = (key: string, props: HTMLAttributes): key is keyof FiberHostElement['props'] => props.hasOwnProperty(key);
 
-const isEvent = (name: keyof HTMLAttributes, value: HTMLAttributesValue): value is EventListener =>
+const isEvent = (name: ElementAttributesKeys, value: ElementAttributesValue): value is EventListener =>
     (name[0] === 'o' && name[1] === 'n') && typeof value === 'function'
 
-const isStyleProps = (name: keyof HTMLAttributes, value: HTMLAttributesValue): value is CSSProperties => 
+const isStyleProps = (name: ElementAttributesKeys, value: ElementAttributesValue): value is CSSProperties => 
     name === 'style' && typeof value === 'object';
 
 // Simplified types
 type DOM = HTMLElement | SVGElement
-type HTMLAttributesValue = HTMLAttributes[keyof HTMLAttributes];
+type ElementAttributes = FiberHostElement['props'];
+type ElementAttributesKeys = keyof FiberHostElement['props'];
+type ElementAttributesValue = ElementAttributes[ElementAttributesKeys];
 
 const SVG_URL = 'http://www.w3.org/2000/svg';

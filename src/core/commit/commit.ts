@@ -1,6 +1,7 @@
+import { Reference } from "kiwui";
 import { Fiber, FiberComponent, FiberHostElement } from "../../classes"
 import { FiberHost } from "../../types";
-import { isFiberComponent, isFiberElement, isFiberHost } from "../../utils/is-type"
+import { isFiberComponent, isFiberElement, isFiberHost, isFunction } from "../../utils/is-type"
 import { updateElement } from "../dom"
 import { TAG } from "../reconcile/reconcile.types";
 
@@ -29,6 +30,9 @@ export const commit = (fiber: Fiber | null) => {
         if (isFiberElement(fiber))
             updateHostElement(fiber);
     }
+
+    if (isFiberElement(fiber) && fiber.ref)
+        reference(fiber.ref, fiber.node);
   
     fiber.action = null;
   
@@ -40,7 +44,28 @@ export const removeElement = (fiber: Fiber) => {
     if (isFiberComponent(fiber))
         return fiber.kids.forEach(removeElement);
 
-   fiber.parentNode.removeChild(fiber.node);
+    fiber.parentNode.removeChild(fiber.node); // fiber.node.remove()
+    if (isFiberElement(fiber)) {
+        referenceKids(fiber.kids);
+        if (fiber.ref)
+            reference(fiber.ref, fiber.node);
+    }
+}
+
+const reference = <T extends HTMLElement>(ref: Reference<T | null>, element: T | null) => {
+    isFunction(ref) 
+        ? ref(element) 
+        : ref.current = element;
+}
+
+const referenceKids = (kids: Fiber[]) => {
+    if (kids.length) return;
+
+    for (const kid of kids) {
+        referenceKids(kid.kids);
+        if (isFiberElement(kid) && kid.ref)
+            reference(kid.ref, null);
+    }
 }
 
 const insertBefore = (fiber: FiberHost, element: FiberHost, before: Node | null) =>

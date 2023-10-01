@@ -1,4 +1,4 @@
-import { Fiber } from "../classes";
+import { Fiber, FiberComponent, FiberHostElement } from "../classes";
 import { isFiberComponent, isFiberElement } from "./is-type";
 
 // NOTE: We assign the new fiber to the old one, thus keeping old and new tree synchronized.
@@ -7,13 +7,17 @@ export const copyFiber = (oldFiber: Fiber, newFiber: Fiber) => {
     const isComponent = isFiberComponent(oldFiber);
     const isElement = isFiberElement(oldFiber);
 
-    const oldProps = (isComponent || isElement)
-        ? oldFiber.props
-        : null;
-
-    const hooks = isComponent 
-        ? (oldFiber as any).hooks
-        : undefined;
+    let oldProps: any | null = null;
+    let oldHooks!: FiberComponent['hooks'];
+    let oldRef: FiberHostElement['ref'];
+    if (isComponent) {
+        oldProps = oldFiber.props;
+        oldHooks = oldFiber.hooks
+    }
+    else if (isElement) {
+        oldProps = oldFiber.props;
+        oldRef = oldFiber.ref;
+    }
 
     const { kids, node } = oldFiber;
 
@@ -25,11 +29,14 @@ export const copyFiber = (oldFiber: Fiber, newFiber: Fiber) => {
     oldFiber.kids = kids;
     oldFiber.node = node;
 
-    if (isComponent && hooks)
-        oldFiber.hooks = hooks;
-
-    if (isComponent || isElement)
+    if (isComponent) {
         oldFiber.oldProps = oldProps;
+        oldFiber.hooks = oldHooks;
+    } 
+    else if (isElement) {
+        oldFiber.oldProps = oldProps;
+        oldFiber.ref = oldRef;
+    }
 
     return oldFiber;
 }
