@@ -1,6 +1,6 @@
-import { Reference } from "kiwui"
+import { Hooks } from "kiwui"
 import { useMemo } from "../useMemo"
 
-export const useRef = <T>(current: T): Reference<T> => {
+export const useRef: Hooks['useRef'] = <T>(current: T) => {
     return useMemo(() => ({ current }), [])
 }

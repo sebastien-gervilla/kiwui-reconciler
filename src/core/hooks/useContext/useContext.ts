@@ -1,8 +1,8 @@
-import { Context } from "kiwui";
+import { Context, Hooks } from "kiwui";
 import { getCurrentFiber } from "../../reconcile";
 import { Fiber, FiberComponent } from "../../../classes";
 
-export const useContext = <T>(consumer: Context<T>): T => {
+export const useContext: Hooks['useContext'] = <T>(consumer: Context<T>) => {
     let contextFiber = getCurrentFiber()?.parent;
     while (contextFiber && (!isFiberExotic<T>(contextFiber) || contextFiber.component !== consumer.Provider))
         contextFiber = contextFiber.parent
