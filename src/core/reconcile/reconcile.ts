@@ -1,12 +1,12 @@
-import { SingleKiwuiNode, KiwuiHTML, MemoComponent, KiwuiNode } from "kiwui";
+import { SingleKiwuiNode, KiwuiHTML, KiwuiNode } from "kiwui";
 import { Fiber, FiberComponent, FiberHostElement, FiberHostText } from "../../classes";
-import { isComponent, isFiberComponent, isFiberElement, isFiberMemo, isFiberText, isKiwuiElement } from "../../utils/is-type";
+import { isFiberComponent, isFiberElement, isFiberMemo, isFiberText } from "../../utils/is-type";
 import { commit } from "../commit";
 import { createElement, createText } from "../dom";
 import { schedule, shouldYield } from "../schedule";
 import { initializeDispatcher, resetCursor } from "../hooks";
 import { diffing } from "./diffing";
-import { isValidTag, isValidText } from "../../utils/validations";
+import { isValidTag } from "../../utils/validations";
 import { StoredEffect } from "../hooks/hooks.types";
 import { TAG } from "./reconcile.types";
 import { flattenNode } from "../../utils/flatten-node";
