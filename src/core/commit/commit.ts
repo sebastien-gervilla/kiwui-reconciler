@@ -1,7 +1,7 @@
 import { Reference } from "kiwui";
 import { Fiber, FiberComponent, FiberHostElement } from "../../classes"
 import { FiberHost } from "../../types";
-import { isFiberComponent, isFiberElement, isFiberHost, isFunction } from "../../utils/is-type"
+import { isFiberComponent, isFiberElement, isFiberHost, isFiberPortal, isFunction } from "../../utils/is-type"
 import { updateElement } from "../dom"
 import { TAG } from "../reconcile/reconcile.types";
 
@@ -72,6 +72,9 @@ const insertBefore = (fiber: FiberHost, element: FiberHost, before: Node | null)
     fiber.parentNode.insertBefore(element.node, before);
 
 const insertFiberHost = (fiber: FiberHost, element: FiberHost, before: Fiber | undefined) => {
+    if (fiber.parent && isFiberComponent(fiber.parent) && isFiberPortal(fiber.parent))
+        return fiber.parent.component.container.insertBefore(element.node, before?.node);
+
     if (!before)
         return insertBefore(fiber, element, null);
 
@@ -83,17 +86,18 @@ const insertFiberHost = (fiber: FiberHost, element: FiberHost, before: Fiber | u
 }
 
 const insertComponent = (fiber: FiberComponent) => {
-    if (!fiber.child || !fiber.action || !fiber.child.action) // TODO: Clean
+    if (!fiber.child?.action || !fiber.action)
         return;
 
-    fiber.child.action.op |= fiber.action.op
-    fiber.child.action.before = fiber.action.before
+    let { op, before } = fiber.action;
+    fiber.child.action.op |= op;
+    fiber.child.action.before = before;
 
     let sibling = fiber.child.sibling;
     while (sibling) {
         if (sibling.action) {
-            sibling.action.op |= fiber.action.op;
-            sibling.action.before = fiber.action.before;
+            sibling.action.op |= op;
+            sibling.action.before = before;
         }
         sibling = sibling.sibling;
     }

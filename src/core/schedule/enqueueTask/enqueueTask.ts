@@ -3,7 +3,6 @@ import { isFunction } from "../../../utils/is-type";
 export const enqueueTask = (pending: boolean, transitions: Function[]) => {
     const task = getTask(transitions);
 
-    // TODO: Group these conditions elsewhere - Factory ?
     if (!pending && isFunction(queueMicrotask))
         return () => queueMicrotask(task);
 

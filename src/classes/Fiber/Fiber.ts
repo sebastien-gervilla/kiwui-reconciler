@@ -18,7 +18,7 @@ export default class Fiber {
     public action: Action | null = null;
 
     public isDirty: boolean = false;
-    public lane!: number; // TODO: Can it be null ?
+    public lane!: number;
 
     public isGettingNode: boolean = false;
 
