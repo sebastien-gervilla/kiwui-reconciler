@@ -38,7 +38,7 @@ const applyStyles = (element: DOM, oldStyles: CSSProperties, newStyles: CSSPrope
 
     // Apply new properties
     for (styleKey in newStyles)
-        if (newStyles[styleKey] !== oldStyles[styleKey])
+        if (newStyles[styleKey] !== oldStyles?.[styleKey])
             // @ts-ignore - readonly style prevents from modifying its values
             element.style[styleKey] = newStyles[styleKey]?.toString() || '';
 
@@ -54,7 +54,7 @@ const updateElementProps = <T extends ElementAttributesValue>(element: DOM, name
         return;
 
     if (isStyleProps(name, newProp))
-        return applyStyles(element, newProp, oldProp as CSSProperties);
+        return applyStyles(element, (oldProp || {}) as CSSProperties, newProp);
 
     if (isEvent(name, newProp)) {
         // TODO: Support more listeners
@@ -69,7 +69,7 @@ const updateElementProps = <T extends ElementAttributesValue>(element: DOM, name
         return;
     }
     
-    if (newProp === null || newProp === false)
+    if (newProp === null || newProp === false || newProp === undefined)
         return element.removeAttribute(name);
 
     element.setAttribute(name, newProp as string);
