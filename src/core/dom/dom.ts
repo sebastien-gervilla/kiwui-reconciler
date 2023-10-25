@@ -1,6 +1,7 @@
 import { FiberHostElement, FiberHostText } from '../../classes'
 import { CSSProperties, HTMLAttributes } from 'kiwui'
 import { TAG } from '../reconcile/reconcile.types';
+import { getAttributeAlias } from './getAttributeAlias';
 
 // TODO: Relocation to kiwui-dom-bindings ?
 
@@ -71,8 +72,8 @@ const updateElementProps = <T extends ElementAttributesValue>(element: DOM, name
     
     if (newProp === null || newProp === false || newProp === undefined)
         return element.removeAttribute(name);
-
-    element.setAttribute(name, newProp as string);
+    
+    element.setAttribute(getAttributeAlias(name), newProp as string);
 }
 
 // Checkers
