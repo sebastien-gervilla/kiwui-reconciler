@@ -51,7 +51,7 @@ const applyStyles = (element: DOM, oldStyles: CSSProperties, newStyles: CSSPrope
 };
 
 const updateElementProps = <T extends ElementAttributesValue>(element: DOM, name: ElementAttributesKeys, oldProp: T, newProp: T) => {
-    if (oldProp === newProp || name === 'children' || name === 'ref')
+    if (oldProp === newProp || name === 'children' || name === 'ref' || name === 'key')
         return;
 
     if (isStyleProps(name, newProp))
