@@ -4,6 +4,7 @@ export const getAttributeAlias = (attribute: string) => {
 
 const aliases: {[key: string]: string} = {
     // TODO:
+    'className': 'class',
     'acceptCharset': 'accept-charset',
     'htmlFor': 'for',
     'httpEquiv': 'http-equiv',
