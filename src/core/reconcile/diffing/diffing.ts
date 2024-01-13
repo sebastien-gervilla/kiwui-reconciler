@@ -7,17 +7,16 @@ import { KeysTable, Usage } from "./diffing.types";
 
 export const diffing = (oldChildren: Fiber[], newChildren: Fiber[]) => {
     let actions: Action[] = [];
-    let oldTable: KeysTable = {};
-    let newTable: KeysTable = {};
+    let oldTable: KeysTable = [];
+    let newTable: KeysTable = [];
     
     let i, j;
 
-    // TODO: Huge problem, if elements have no keys of same type, it won't push it
     for (i = 0; i < oldChildren.length; i++)
-        oldTable[getKey(oldChildren[i])] = i;
+        oldTable.push(getKey(oldChildren[i]));
 
     for (i = 0; i < newChildren.length; i++)
-        newTable[getKey(newChildren[i])] = i;
+        newTable.push(getKey(newChildren[i]));
 
     // Index table: 0 - unused, 1 - used
     let oldIndexTable = new Uint8Array(oldChildren.length);
@@ -32,43 +31,49 @@ export const diffing = (oldChildren: Fiber[], newChildren: Fiber[]) => {
         }
         
         if (newChildren.length <= j) {
-            removeElement(oldChildren[i])
+            removeElement(oldChildren[i]);
             i++; continue;
         }
         
         if (oldChildren.length <= i) {
-            insertAction(actions, newChild, oldChildren[i]);
+            insertAction(actions, newChild);
             j++; continue;
         }
         
-        if (getKey(oldChild) === getKey(newChild)) {
+        const oldKey = getKey(oldChild);
+        const newKey = getKey(newChild);
+        const newIndex = newTable.indexOf(newKey);
+        const oldIndex = oldTable.indexOf(oldKey);
+        if (oldKey === newKey && newIndex !== -1 && oldIndex !== -1) {
             newChildren[j] = copyFiber(oldChild, newChild);
             updateAction(actions);
-            i++; j++;
-            continue;
+            newTable[newIndex] = null;
+            oldTable[oldIndex] = null;
+            i++; j++; continue;
         }
         
-        const oldInNewTable = newTable[getKey(oldChild)];
-        const newInOldTable = oldTable[getKey(newChild)];
-
-        if (oldInNewTable === undefined) {
-            removeElement(oldChildren[i])
-            oldIndexTable[i] = Usage.USED;
+        const oldInNewTable = newTable.indexOf(oldKey);
+        if (oldInNewTable === -1) {
+            removeElement(oldChildren[i]);
             i++; continue;
         }
         
-        if (newInOldTable === undefined) {
+        const newInOldTable = oldTable.indexOf(newKey);
+        if (newInOldTable === -1) {
             insertAction(actions, newChild, oldChildren[i]);
             j++; continue;
         }
 
-        newChildren[j] = copyFiber(oldChildren[newInOldTable], newChild)
+        newChildren[j] = copyFiber(oldChildren[newInOldTable], newChild);
         moveAction(actions, oldChildren[newInOldTable], oldChildren[i]);
         oldIndexTable[newInOldTable] = Usage.USED;
+
+        newTable[i] = null;
+        oldTable[newInOldTable] = null;
         j++;
     }
     
-    return actions
+    return actions;
 }
 
 const getKey = (fiber: Fiber) => {

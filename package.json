@@ -1,15 +1,15 @@
 {
   "name": "kiwui-reconciler",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "description": "Kiwui's reconciler",
   "author": "Sébastien Gervilla (sebastien-gervilla)",
   "license": "ISC",
   "keywords": [
     "kiwui",
+    "reconciliation",
     "javascript",
     "typescript"
   ],
-
   "type": "module",
   "main": "./dist/index.js",
   "module": "./dist/index.js",
@@ -19,21 +19,17 @@
     "README.md",
     "LICENSE"
   ],
-
   "scripts": {
-    "build": "tsc",
-    "reset:kiwui": "rmdir /s /q node_modules\\kiwui && npm i"
+    "build": "tsc"
   },
-
   "devDependencies": {
     "@types/node": "^20.4.5",
     "typescript": "^5.1.6"
   },
   "dependencies": {
-    "kiwui": "file:../kiwui",
+    "kiwui": "^1.0.0",
     "tslib": "^2.6.1"
   },
-
   "homepage": "https://github.com/sebastien-gervilla/kiwui-reconciler#readme",
   "repository": {
     "type": "git",

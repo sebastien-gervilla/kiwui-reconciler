@@ -1,6 +1,4 @@
-export type KeysTable = {
-    [key: string]: number
-}
+export type KeysTable = (string | null)[]
 
 export enum Usage {
     UNUSED = 0,
