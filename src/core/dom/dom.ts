@@ -58,7 +58,6 @@ const updateElementProps = <T extends ElementAttributesValue>(element: DOM, name
         return applyStyles(element, (oldProp || {}) as CSSProperties, newProp);
 
     if (isEvent(name, newProp)) {
-        // TODO: Support more listeners
         const type = name.slice(2).toLowerCase();
         if (oldProp) element.removeEventListener(type, oldProp as EventListener);
         return element.addEventListener(type, newProp);
