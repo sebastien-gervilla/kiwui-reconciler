@@ -1,1 +1,1 @@
-export { createElement, updateElement } from './dom';
+export { createElement, createText, updateElement } from './dom';

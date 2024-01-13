@@ -1,33 +1,42 @@
-import { Fiber } from "../classes";
+import { Fiber, FiberComponent, FiberHostElement } from "../classes";
 import { isFiberComponent, isFiberElement } from "./is-type";
 
+// NOTE: We assign the new fiber to the old one, thus keeping old and new tree synchronized.
+// With this, multiple state changes on the same component references always the same fiber.
 export const copyFiber = (oldFiber: Fiber, newFiber: Fiber) => {
     const isComponent = isFiberComponent(oldFiber);
     const isElement = isFiberElement(oldFiber);
 
-    const { node, kids } = oldFiber;
-    const oldProps = (isComponent || isElement) ? 
-        oldFiber.props : null;
-    const hooks = isComponent
-        ? oldFiber.hooks
-        : undefined
+    let oldProps: any | null = null;
+    let oldHooks!: FiberComponent['hooks'];
+    let oldRef: FiberHostElement['ref'];
+    if (isComponent) {
+        oldProps = oldFiber.props;
+        oldHooks = oldFiber.hooks
+    }
+    else if (isElement) {
+        oldProps = oldFiber.props;
+        oldRef = oldFiber.ref;
+    }
 
-    const entries = Object.entries(newFiber) as 
-        [keyof Fiber, Fiber[keyof Fiber]][];
-        
-    for (const [key, value] of entries)
-        if (typeof value !== 'function')
-            (oldFiber as any)[key] = value
-    
-    if (isComponent && hooks)
-        oldFiber.hooks = hooks
+    const { kids, node } = oldFiber;
 
-    // oldFiber.ref = newFiber.ref
-    oldFiber.node = node
-    oldFiber.kids = kids
+    let key: keyof Fiber;
+    for (key in newFiber)
+        if (typeof newFiber[key] !== 'function')
+            (oldFiber as any)[key] = newFiber[key]
 
-    if (isComponent || isElement)
+    oldFiber.kids = kids;
+    oldFiber.node = node;
+
+    if (isComponent) {
         oldFiber.oldProps = oldProps;
+        oldFiber.hooks = oldHooks;
+    } 
+    else if (isElement) {
+        oldFiber.oldProps = oldProps;
+        oldFiber.ref = oldRef;
+    }
 
-    return oldFiber
+    return oldFiber;
 }
